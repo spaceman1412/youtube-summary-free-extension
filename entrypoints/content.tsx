@@ -1,17 +1,17 @@
-import { createRoot } from 'react-dom/client';
+import { createRoot } from "react-dom/client";
 
-const HELLO_CONTAINER_ID = 'wxt-hello-panel';
+const HELLO_CONTAINER_ID = "wxt-hello-panel";
 
 function HelloPanel() {
   return (
     <div
       style={{
-        padding: '12px',
-        border: '1px solid #0f9d58',
-        borderRadius: '8px',
-        background: '#f0fff4',
-        fontFamily: 'Arial, sans-serif',
-        marginBottom: '12px',
+        padding: "12px",
+        border: "1px solid #0f9d58",
+        borderRadius: "8px",
+        background: "#f0fff4",
+        fontFamily: "Arial, sans-serif",
+        marginBottom: "12px",
       }}
     >
       Hello
@@ -20,7 +20,7 @@ function HelloPanel() {
 }
 
 function tryMountHelloPanel() {
-  const secondary = document.querySelector<HTMLDivElement>('#secondary');
+  const secondary = document.querySelector<HTMLDivElement>("#secondary");
   if (!secondary) {
     return false;
   }
@@ -29,7 +29,7 @@ function tryMountHelloPanel() {
     return true;
   }
 
-  const container = document.createElement('div');
+  const container = document.createElement("div");
   container.id = HELLO_CONTAINER_ID;
   secondary.prepend(container);
 
@@ -59,11 +59,11 @@ function mountHelloPanelWithObserver() {
 }
 
 export default defineContentScript({
-  matches: ['*://*.youtube.com/watch?v=*'],
+  matches: ["*://*.youtube.com/watch?v=*"],
   main() {
-    mountHelloPanelWithObserver();
-    document.addEventListener('yt-navigate-finish', () => {
-      mountHelloPanelWithObserver();
-    });
+    // mountHelloPanelWithObserver();
+    // document.addEventListener('yt-navigate-finish', () => {
+    //   mountHelloPanelWithObserver();
+    // });
   },
 });
