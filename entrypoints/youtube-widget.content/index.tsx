@@ -2,6 +2,32 @@
 import { createRoot } from "react-dom/client";
 import Widget from "./Widget";
 
+const TARGET_SELECTOR = "#secondary";
+const TARGET_TIMEOUT = 10000;
+
+async function waitForElement(selector: string, timeout = TARGET_TIMEOUT) {
+  const existing = document.querySelector(selector);
+  if (existing) return existing as HTMLElement;
+
+  return new Promise<HTMLElement>((resolve, reject) => {
+    const timer = window.setTimeout(() => {
+      observer.disconnect();
+      reject(new Error(`Timeout waiting for ${selector}`));
+    }, timeout);
+
+    const observer = new MutationObserver(() => {
+      const found = document.querySelector(selector);
+      if (found) {
+        window.clearTimeout(timer);
+        observer.disconnect();
+        resolve(found as HTMLElement);
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+  });
+}
+
 export default defineContentScript({
   matches: ["*://*.youtube.com/watch?v=*"],
   cssInjectionMode: "ui", // ensures your CSS (if imported) is injected correctly for Shadow UI
@@ -10,34 +36,21 @@ export default defineContentScript({
 
     const ui = await createShadowRootUi(ctx, {
       name: "youtube-widget",
-      // Shadow root config
-      mode: "open", // 'open' lets you inspect in DevTools; 'closed' hides it
-      isolateEvents: true, // prevents page from catching your UI events
-
-      // Where/how to place UI in the page
-      position: "overlay", // overlay keeps it visible regardless of page layout
-      anchor: "body",
-      append: "last",
+      mode: "open",
+      isolateEvents: true,
+      position: "inline",
+      anchor: TARGET_SELECTOR,
+      append: "first",
 
       onMount(container) {
-        // Make the overlay clearly visible
         Object.assign(container.style, {
-          position: "fixed",
-          right: "16px",
-          bottom: "16px",
-          zIndex: "2147483647",
-          width: "320px",
-          minHeight: "120px",
-          background: "white",
-          borderRadius: "12px",
-          boxShadow: "0 8px 24px rgba(0,0,0,.2)",
-          padding: "12px",
-          boxSizing: "border-box",
+          display: "block",
+          width: "100%",
+          marginBottom: "16px",
           fontFamily:
             "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif",
         });
 
-        // Mount React inside the shadow container
         const mount = document.createElement("div");
         container.append(mount);
 
@@ -53,14 +66,22 @@ export default defineContentScript({
       },
     });
 
-    // Insert UI now
-    ui.mount();
+    const mountInSecondary = async () => {
+      try {
+        await waitForElement(TARGET_SELECTOR);
+        ui.mount();
+      } catch (error) {
+        console.warn("[wxt] youtube-widget failed to mount:", error);
+      }
+    };
 
-    // Keep it present across YouTube SPA navigations
-    const remount = () => ui.mount(); // idempotent; safe to call again
+    await mountInSecondary();
+
+    const remount = () => {
+      mountInSecondary();
+    };
     document.addEventListener("yt-navigate-finish", remount);
 
-    // Optional: clean up if WXT tears down the context
     ctx.onInvalidated(() => {
       document.removeEventListener("yt-navigate-finish", remount);
       ui.remove();
