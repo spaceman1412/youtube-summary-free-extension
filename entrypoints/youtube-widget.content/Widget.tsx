@@ -1,49 +1,27 @@
 // src/entrypoints/youtube-widget.content/Widget.tsx
 import { type CSSProperties, useState } from "react";
 
-const CARD_BG =
-  "linear-gradient(135deg, rgba(17,24,39,0.98), rgba(88,28,135,0.95), rgba(59,130,246,0.9))";
-
 const cardStyle: CSSProperties = {
   borderRadius: "16px",
-  padding: "12px",
-  background: CARD_BG,
-  color: "#f8fafc",
-  boxShadow:
-    "0 20px 40px rgba(0,0,0,0.3), 0 8px 16px rgba(139,92,246,0.2), inset 0 1px 0 rgba(255,255,255,0.1)",
-  border: "1px solid rgba(255,255,255,0.2)",
-  backdropFilter: "blur(20px)",
+  padding: "16px",
+  background: "#050505",
+  color: "#f5f5f5",
+  boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
+  border: "1px solid rgba(255,255,255,0.08)",
   display: "flex",
   flexDirection: "column",
   gap: "8px",
 };
 
-const headerStyle: CSSProperties = {
-  display: "flex",
-  alignItems: "flex-start",
-  gap: "6px",
-};
-
-const badgeStyle: CSSProperties = {
-  padding: "2px 8px",
-  borderRadius: "999px",
-  background: "rgba(248,250,252,0.15)",
-  fontSize: "10px",
-  textTransform: "uppercase",
-  letterSpacing: "0.1em",
-  fontWeight: 600,
-};
-
 const sectionStyle: CSSProperties = {
-  background: "rgba(255,255,255,0.08)",
+  background: "rgba(255,255,255,0.02)",
   borderRadius: "12px",
-  border: "1px solid rgba(255,255,255,0.15)",
-  padding: "8px",
+  border: "1px solid rgba(255,255,255,0.08)",
+  padding: "12px",
   display: "flex",
   flexDirection: "column",
   gap: "6px",
-  backdropFilter: "blur(10px)",
-  boxShadow: "inset 0 1px 2px rgba(255,255,255,0.1), 0 4px 8px rgba(0,0,0,0.1)",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
 };
 
 const pickerRowStyle: CSSProperties = {
@@ -61,23 +39,21 @@ const inputLabelStyle: CSSProperties = {
   fontWeight: "600",
   textTransform: "uppercase",
   letterSpacing: "0.1em",
-  color: "rgba(255,255,255,0.9)",
+  color: "rgba(255,255,255,0.7)",
 };
 
 const selectStyle: CSSProperties = {
-  minWidth: "80px",
-  borderRadius: "8px",
-  border: "1px solid rgba(255,255,255,0.2)",
-  padding: "4px 8px",
-  background: "rgba(255,255,255,0.1)",
-  color: "#ffffff",
+  minWidth: "100px",
+  borderRadius: "10px",
+  border: "none",
+  padding: "10px 12px",
+  background: "rgba(255,255,255,0.08)",
+  color: "#f5f5f5",
   fontWeight: "500",
-  fontSize: "11px",
+  fontSize: "12px",
   appearance: "none",
   outline: "none",
-  backdropFilter: "blur(10px)",
-  boxShadow: "inset 0 1px 2px rgba(0,0,0,0.1)",
-  transition: "all 0.2s ease",
+  transition: "background 0.2s ease",
 };
 
 const actionRowStyle: CSSProperties = {
@@ -87,18 +63,65 @@ const actionRowStyle: CSSProperties = {
   justifyContent: "center",
 };
 
+const headerStyle: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  paddingBottom: "12px",
+  borderBottom: "1px solid rgba(255,255,255,0.08)",
+};
+
+const brandStyle: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: "10px",
+  fontSize: "12px",
+  letterSpacing: "0.2em",
+  textTransform: "uppercase",
+  color: "rgba(255,255,255,0.7)",
+};
+
+const brandIconStyle: CSSProperties = {
+  width: "30px",
+  height: "30px",
+  borderRadius: "8px",
+  border: "1px solid rgba(255,255,255,0.12)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: "14px",
+  color: "#f5f5f5",
+};
+
+const headerActionsStyle: CSSProperties = {
+  display: "flex",
+  gap: "6px",
+};
+
+const iconButtonStyle: CSSProperties = {
+  width: "32px",
+  height: "32px",
+  borderRadius: "999px",
+  border: "1px solid rgba(255,255,255,0.15)",
+  background: "transparent",
+  color: "#f5f5f5",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: "12px",
+  cursor: "pointer",
+};
+
 const buttonBase: CSSProperties = {
   flex: 1,
   minWidth: "85px",
-  borderRadius: "20px",
-  padding: "6px 12px",
-  border: "none",
+  borderRadius: "999px",
+  padding: "10px 14px",
+  border: "1px solid rgba(255,255,255,0.2)",
   fontWeight: "600",
   fontSize: "11px",
   cursor: "pointer",
-  transition: "all 0.3s ease",
-  boxShadow: "0 4px 12px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1)",
-  backdropFilter: "blur(10px)",
+  transition: "background 0.3s ease, color 0.3s ease",
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
@@ -107,17 +130,15 @@ const buttonBase: CSSProperties = {
 
 const secondaryButtonStyle: CSSProperties = {
   ...buttonBase,
-  background: "rgba(255,255,255,0.15)",
-  color: "#ffffff",
-  border: "1px solid rgba(255,255,255,0.2)",
+  background: "transparent",
+  color: "#f5f5f5",
 };
 
 const primaryButtonStyle: CSSProperties = {
   ...buttonBase,
-  background: "linear-gradient(135deg, #8b5cf6, #3b82f6, #06b6d4)",
-  color: "#ffffff",
-  boxShadow:
-    "0 6px 20px rgba(139,92,246,0.4), inset 0 1px 0 rgba(255,255,255,0.2)",
+  background: "#f5f5f5",
+  color: "#050505",
+  borderColor: "transparent",
 };
 
 const languages = [
@@ -167,6 +188,16 @@ export default function Widget() {
 
   return (
     <div style={cardStyle}>
+      <div style={headerStyle}>
+        <div style={brandStyle}>
+          <div style={brandIconStyle}>◎</div>
+          <span>Copilot</span>
+        </div>
+        <div style={headerActionsStyle}>
+          <button style={iconButtonStyle}>⤴︎</button>
+          <button style={iconButtonStyle}>⟳</button>
+        </div>
+      </div>
       <div style={sectionStyle}>
         <div style={pickerRowStyle}>
           {renderSelect("Language", language, setLanguage, languages)}
@@ -182,6 +213,10 @@ export default function Widget() {
           <button style={secondaryButtonStyle}>
             <span>📄</span>
             <span>Transcript</span>
+          </button>
+          <button style={secondaryButtonStyle}>
+            <span>💬</span>
+            <span>Chat</span>
           </button>
         </div>
       </div>
