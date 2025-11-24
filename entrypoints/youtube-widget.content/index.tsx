@@ -4,6 +4,7 @@ import Widget from "./Widget";
 
 const TARGET_SELECTOR = "#secondary";
 const TARGET_TIMEOUT = 10000;
+const HOST_ATTR = "data-youtube-summary-widget";
 
 async function waitForElement(selector: string, timeout = TARGET_TIMEOUT) {
   const existing = document.querySelector(selector);
@@ -50,6 +51,7 @@ export default defineContentScript({
           fontFamily:
             "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif",
         });
+        container.setAttribute(HOST_ATTR, "true");
 
         const mount = document.createElement("div");
         container.append(mount);
@@ -66,10 +68,36 @@ export default defineContentScript({
       },
     });
 
+    let isMounted = false;
+
+    const removeExistingHost = () => {
+      document
+        .querySelectorAll<HTMLElement>(`[${HOST_ATTR}]`)
+        .forEach((host) => host.remove());
+    };
+
+    const unmountCurrent = () => {
+      if (!isMounted) return;
+      ui.remove();
+      removeExistingHost();
+      isMounted = false;
+    };
+
     const mountInSecondary = async () => {
+      if (isMounted) return;
       try {
-        await waitForElement(TARGET_SELECTOR);
+        const target = await waitForElement(TARGET_SELECTOR);
+        removeExistingHost();
+
         ui.mount();
+        isMounted = true;
+
+        const mountedHost = document.querySelector<HTMLElement>(
+          `[${HOST_ATTR}]`
+        );
+        if (mountedHost && mountedHost.parentElement !== target) {
+          target.prepend(mountedHost);
+        }
       } catch (error) {
         console.warn("[wxt] youtube-widget failed to mount:", error);
       }
@@ -78,13 +106,14 @@ export default defineContentScript({
     await mountInSecondary();
 
     const remount = () => {
+      unmountCurrent();
       mountInSecondary();
     };
     document.addEventListener("yt-navigate-finish", remount);
 
     ctx.onInvalidated(() => {
       document.removeEventListener("yt-navigate-finish", remount);
-      ui.remove();
+      unmountCurrent();
     });
   },
 });
