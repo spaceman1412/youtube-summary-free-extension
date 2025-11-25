@@ -5,7 +5,7 @@
  * along with action buttons for Summary, Transcript, and Chat features.
  */
 
-import { type CSSProperties, useState } from "react";
+import { type CSSProperties, useEffect, useState } from "react";
 import {
   fetchTranscript,
   type TranscriptResponse,
@@ -236,6 +236,48 @@ const primaryButtonStyle: CSSProperties = {
   borderColor: "transparent",
 };
 
+const onboardingTitleStyle: CSSProperties = {
+  fontSize: "16px",
+  fontWeight: 600,
+  textAlign: "center",
+};
+
+const onboardingDescriptionStyle: CSSProperties = {
+  fontSize: "12px",
+  color: "rgba(255,255,255,0.75)",
+  textAlign: "center",
+  lineHeight: 1.5,
+};
+
+const apiKeyInputStyle: CSSProperties = {
+  width: "100%",
+  borderRadius: "10px",
+  border: "1px solid rgba(255,255,255,0.15)",
+  padding: "12px",
+  background: "rgba(255,255,255,0.05)",
+  color: "#f5f5f5",
+  fontSize: "12px",
+  outline: "none",
+};
+
+const gateActionsStyle: CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "8px",
+};
+
+const linkButtonStyle: CSSProperties = {
+  ...secondaryButtonStyle,
+  textDecoration: "none",
+  textAlign: "center",
+};
+
+const helperTextStyle: CSSProperties = {
+  fontSize: "10px",
+  color: "rgba(255,255,255,0.6)",
+  textAlign: "center",
+};
+
 // ============================================================================
 // DATA CONFIGURATIONS
 // ============================================================================
@@ -267,6 +309,9 @@ const lengths = [
   { label: "Detailed", value: "long" },
 ];
 
+const API_KEY_STORAGE_KEY = "googleAIStudioApiKey";
+const GOOGLE_API_KEY_URL = "https://aistudio.google.com/app/apikey";
+
 // ============================================================================
 // COMPONENT
 // ============================================================================
@@ -285,6 +330,45 @@ export default function Widget() {
   >([]);
   const [isTranscriptLoading, setIsTranscriptLoading] = useState(false);
   const [transcriptError, setTranscriptError] = useState<string | null>(null);
+  const [apiKey, setApiKey] = useState("");
+  const [apiKeyInput, setApiKeyInput] = useState("");
+  const [apiKeyNotice, setApiKeyNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const storedKey = window.localStorage.getItem(API_KEY_STORAGE_KEY);
+    if (storedKey) {
+      setApiKey(storedKey);
+      setApiKeyInput(storedKey);
+    }
+  }, []);
+
+  const persistApiKey = (value: string) => {
+    if (typeof window === "undefined") return;
+    if (value) {
+      window.localStorage.setItem(API_KEY_STORAGE_KEY, value);
+    } else {
+      window.localStorage.removeItem(API_KEY_STORAGE_KEY);
+    }
+  };
+
+  const handleSaveApiKey = () => {
+    const trimmed = apiKeyInput.trim();
+    if (!trimmed) {
+      setApiKeyNotice("Please paste a Google AI Studio API key to continue.");
+      return;
+    }
+    persistApiKey(trimmed);
+    setApiKey(trimmed);
+    setApiKeyNotice("API key saved. You can update it anytime.");
+  };
+
+  const handleResetApiKey = () => {
+    persistApiKey("");
+    setApiKey("");
+    setApiKeyInput("");
+    setApiKeyNotice(null);
+  };
 
   /**
    * Extracts a video ID from the current URL.
@@ -321,6 +405,12 @@ export default function Widget() {
    */
   const handleTranscriptClick = async () => {
     if (isTranscriptLoading) return;
+    if (!apiKey) {
+      setTranscriptError(
+        "Please add your Google AI Studio API key to continue."
+      );
+      return;
+    }
 
     const videoId = extractCurrentVideoId();
     if (!videoId) {
@@ -351,7 +441,7 @@ export default function Widget() {
 
   /**
    * Helper function to render a labeled dropdown select.
-   * 
+   *
    * @param label - Display label for the select
    * @param value - Current selected value
    * @param onChange - Callback when selection changes
@@ -380,24 +470,100 @@ export default function Widget() {
     </label>
   );
 
-  return (
-    <div style={cardStyle}>
-      {/* Header section with branding and action icons */}
-      <div style={headerStyle}>
-        <div style={brandStyle}>
-          <div style={brandIconStyle}>◎</div>
-          <span>Copilot</span>
-        </div>
-        <div style={headerActionsStyle}>
-          {/* Expand/collapse button (not yet implemented) */}
-          <button style={iconButtonStyle}>⤴︎</button>
-          {/* Refresh button (not yet implemented) */}
-          <button style={iconButtonStyle}>⟳</button>
+  const renderHeader = () => (
+    <div style={headerStyle}>
+      <div style={brandStyle}>
+        <div style={brandIconStyle}>◎</div>
+        <span>Copilot</span>
+      </div>
+      <div style={headerActionsStyle}>
+        <button style={iconButtonStyle}>⤴︎</button>
+        <button style={iconButtonStyle}>⟳</button>
+      </div>
+    </div>
+  );
+
+  if (!apiKey) {
+    return (
+      <div style={cardStyle}>
+        {renderHeader()}
+        <div style={sectionStyle}>
+          <div style={onboardingTitleStyle}>Connect Google AI Studio</div>
+          <div style={onboardingDescriptionStyle}>
+            You need a Google AI Studio API key to generate summaries. Getting
+            one is free and only takes a minute.
+          </div>
+          <input
+            style={apiKeyInputStyle}
+            placeholder="Paste your API key"
+            type="password"
+            value={apiKeyInput}
+            onChange={(event) => {
+              setApiKeyInput(event.target.value);
+              setApiKeyNotice(null);
+            }}
+          />
+          <div style={gateActionsStyle}>
+            <button style={primaryButtonStyle} onClick={handleSaveApiKey}>
+              Save API key
+            </button>
+            <a
+              href={GOOGLE_API_KEY_URL}
+              style={linkButtonStyle}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Get free API key ↗
+            </a>
+          </div>
+          {apiKeyNotice && (
+            <div
+              style={
+                apiKeyNotice.includes("Please")
+                  ? transcriptErrorStyle
+                  : transcriptMessageStyle
+              }
+            >
+              {apiKeyNotice}
+            </div>
+          )}
+          <div style={helperTextStyle}>
+            Stored securely in this browser only (localStorage).
+          </div>
         </div>
       </div>
+    );
+  }
+
+  return (
+    <div style={cardStyle}>
+      {renderHeader()}
 
       {/* Main content section */}
       <div style={sectionStyle}>
+        <div
+          style={{
+            ...helperTextStyle,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "8px",
+            textAlign: "left",
+          }}
+        >
+          <span>Connected to Google AI Studio (stored locally).</span>
+          <button
+            style={{
+              ...secondaryButtonStyle,
+              flex: "unset",
+              padding: "6px 10px",
+              fontSize: "10px",
+            }}
+            onClick={handleResetApiKey}
+          >
+            Update key
+          </button>
+        </div>
         {/* Dropdown selectors for configuration */}
         <div style={pickerRowStyle}>
           {renderSelect("Language", language, setLanguage, languages)}
@@ -448,7 +614,10 @@ export default function Widget() {
         {!isTranscriptLoading && !transcriptError && (
           <div style={transcriptListStyle}>
             {transcriptSegments.map((segment, index) => (
-              <div key={`${segment.offset}-${index}`} style={transcriptItemStyle}>
+              <div
+                key={`${segment.offset}-${index}`}
+                style={transcriptItemStyle}
+              >
                 <span style={transcriptTimestampStyle}>
                   {formatTimestamp(segment.offset)}
                 </span>
