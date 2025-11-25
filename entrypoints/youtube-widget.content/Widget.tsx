@@ -6,10 +6,13 @@
  */
 
 import { type CSSProperties, useEffect, useState } from "react";
-import {
-  fetchTranscript,
-  type TranscriptResponse,
-} from "youtube-transcript-plus";
+import { GoogleGenAI } from "@google/genai";
+import { fetchTranscript } from "youtube-transcript-plus";
+
+type TranscriptSegment = {
+  offset: number;
+  text: string;
+};
 
 // ============================================================================
 // STYLE DEFINITIONS
@@ -148,6 +151,19 @@ const transcriptSectionStyle: CSSProperties = {
   maxHeight: "220px",
   overflowY: "auto",
   gap: "10px",
+};
+
+const summarySectionStyle: CSSProperties = {
+  ...sectionStyle,
+  marginTop: "8px",
+  gap: "10px",
+};
+
+const summaryTextStyle: CSSProperties = {
+  fontSize: "13px",
+  lineHeight: 1.5,
+  color: "rgba(255,255,255,0.85)",
+  textAlign: "left",
 };
 
 const transcriptListStyle: CSSProperties = {
@@ -309,6 +325,22 @@ const lengths = [
   { label: "Detailed", value: "long" },
 ];
 
+const GEMINI_MODEL_MAP: Record<string, string> = {
+  "gpt-4o": "gemini-2.0-flash",
+  "sonnet-3.5": "gemini-1.5-pro",
+  mini: "gemini-1.5-flash",
+};
+
+const SUMMARY_STYLE_COPY: Record<string, string> = {
+  short:
+    "Provide a concise summary (2-3 sentences) highlighting the top insights.",
+  medium:
+    "Provide a medium-length summary (3-5 bullet sentences) covering the main sections and key takeaways.",
+  long: "Provide a detailed summary (6+ sentences) including context, supporting points, and any action items discussed.",
+};
+
+const MAX_TRANSCRIPT_CHARACTERS = 6000;
+
 const API_KEY_STORAGE_KEY = "googleAIStudioApiKey";
 const GOOGLE_API_KEY_URL = "https://aistudio.google.com/app/apikey";
 
@@ -326,13 +358,40 @@ export default function Widget() {
   const [model, setModel] = useState(models[0]?.value ?? "gpt-4o");
   const [length, setLength] = useState(lengths[1]?.value ?? "medium");
   const [transcriptSegments, setTranscriptSegments] = useState<
-    TranscriptResponse[]
+    TranscriptSegment[]
   >([]);
   const [isTranscriptLoading, setIsTranscriptLoading] = useState(false);
   const [transcriptError, setTranscriptError] = useState<string | null>(null);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [isSummaryLoading, setIsSummaryLoading] = useState(false);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
   const [apiKey, setApiKey] = useState("");
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [apiKeyNotice, setApiKeyNotice] = useState<string | null>(null);
+
+  const getModelId = () =>
+    GEMINI_MODEL_MAP[model] ?? GEMINI_MODEL_MAP["gpt-4o"];
+
+  const getLanguageLabel = () =>
+    languages.find((entry) => entry.value === language)?.label ?? "English";
+
+  const buildSummaryPrompt = (transcriptText: string) => {
+    const lengthInstruction =
+      SUMMARY_STYLE_COPY[length] ?? SUMMARY_STYLE_COPY.medium;
+    return [
+      `You are summarizing a YouTube video transcript in ${getLanguageLabel()}.`,
+      lengthInstruction,
+      "Focus on the main narrative arc, important data points, and any explicit recommendations.",
+      "Transcript:",
+      `"""${transcriptText}"""`,
+    ].join("\n\n");
+  };
+
+  const reduceTranscript = (segments: TranscriptSegment[]) => {
+    const combined = segments.map((segment) => segment.text ?? "").join(" ");
+    if (combined.length <= MAX_TRANSCRIPT_CHARACTERS) return combined;
+    return combined.slice(-MAX_TRANSCRIPT_CHARACTERS);
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -368,6 +427,9 @@ export default function Widget() {
     setApiKey("");
     setApiKeyInput("");
     setApiKeyNotice(null);
+    setSummary(null);
+    setSummaryError(null);
+    setTranscriptSegments([]);
   };
 
   /**
@@ -400,6 +462,27 @@ export default function Widget() {
     return `${minutes}:${seconds}`;
   };
 
+  const fetchTranscriptForVideo = async (): Promise<TranscriptSegment[]> => {
+    const videoId = extractCurrentVideoId();
+    if (!videoId) {
+      throw new Error("Unable to detect the current video.");
+    }
+    return fetchTranscript(videoId, { lang: language });
+  };
+
+  const refreshTranscriptState = async () => {
+    const transcript = await fetchTranscriptForVideo();
+    setTranscriptSegments(transcript);
+    return transcript;
+  };
+
+  const ensureTranscriptForSummary = async () => {
+    if (transcriptSegments.length > 0) {
+      return transcriptSegments;
+    }
+    return refreshTranscriptState();
+  };
+
   /**
    * Handles click on the Transcript button by fetching and storing transcript data.
    */
@@ -423,10 +506,10 @@ export default function Widget() {
     setTranscriptError(null);
 
     try {
-      const transcript = await fetchTranscript(videoId, {
-        lang: language,
-      });
-      setTranscriptSegments(transcript);
+      const transcript = await refreshTranscriptState();
+      if (!transcript.length) {
+        setTranscriptError("Transcript was empty for this video.");
+      }
     } catch (error) {
       setTranscriptSegments([]);
       setTranscriptError(
@@ -436,6 +519,66 @@ export default function Widget() {
       );
     } finally {
       setIsTranscriptLoading(false);
+    }
+  };
+
+  const handleSummaryClick = async () => {
+    if (isSummaryLoading) return;
+    if (!apiKey) {
+      setSummaryError("Please add your Google AI Studio API key to continue.");
+      return;
+    }
+
+    setIsSummaryLoading(true);
+    setSummaryError(null);
+
+    try {
+      const transcript = await ensureTranscriptForSummary();
+      if (!transcript.length) {
+        setSummary(null);
+        setSummaryError("Transcript is empty. Try fetching captions first.");
+        return;
+      }
+
+      const ai = new GoogleGenAI({ apiKey });
+      const prompt = buildSummaryPrompt(reduceTranscript(transcript));
+      const response = await ai.models.generateContent({
+        model: getModelId(),
+        contents: prompt,
+        config: {
+          maxOutputTokens: length === "long" ? 1024 : 512,
+          temperature: 0.7,
+        },
+      });
+
+      const inlineText = response.text?.trim();
+      const fallbackText =
+        response.candidates?.[0]?.content?.parts
+          ?.map((part) =>
+            typeof part === "object" &&
+            part !== null &&
+            "text" in part &&
+            typeof (part as { text?: unknown }).text === "string"
+              ? ((part as { text?: string }).text as string)
+              : ""
+          )
+          .join(" ")
+          .trim() ?? "";
+
+      const finalSummary = inlineText || fallbackText;
+      if (!finalSummary) {
+        throw new Error("Gemini returned an empty response.");
+      }
+      setSummary(finalSummary);
+    } catch (error) {
+      setSummary(null);
+      setSummaryError(
+        error instanceof Error
+          ? error.message
+          : "Failed to generate summary. Please try again."
+      );
+    } finally {
+      setIsSummaryLoading(false);
     }
   };
 
@@ -574,9 +717,16 @@ export default function Widget() {
         {/* Action buttons */}
         <div style={actionRowStyle}>
           {/* Primary action: Generate summary */}
-          <button style={primaryButtonStyle}>
+          <button
+            style={{
+              ...primaryButtonStyle,
+              opacity: isSummaryLoading ? 0.8 : 1,
+            }}
+            onClick={handleSummaryClick}
+            disabled={isSummaryLoading}
+          >
             <span>✨</span>
-            <span>Summary</span>
+            <span>{isSummaryLoading ? "Summarizing…" : "Summary"}</span>
           </button>
           {/* Secondary action: View transcript */}
           <button
@@ -596,6 +746,38 @@ export default function Widget() {
             <span>Chat</span>
           </button>
         </div>
+      </div>
+      <div style={summarySectionStyle}>
+        {isSummaryLoading && (
+          <div style={transcriptMessageStyle}>Generating summary…</div>
+        )}
+        {!isSummaryLoading && summaryError && (
+          <div style={transcriptErrorStyle}>{summaryError}</div>
+        )}
+        {!isSummaryLoading && !summaryError && summary && (
+          <div style={summaryTextStyle}>
+            {summary
+              .split("\n")
+              .filter((line) => line.trim().length > 0)
+              .map((line, index) => (
+                <p
+                  key={`${line}-${index}`}
+                  style={{
+                    margin: 0,
+                    marginBottom: "8px",
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  {line}
+                </p>
+              ))}
+          </div>
+        )}
+        {!isSummaryLoading && !summaryError && !summary && (
+          <div style={transcriptMessageStyle}>
+            Click Summary to generate Google AI insights for this video.
+          </div>
+        )}
       </div>
       <div style={transcriptSectionStyle}>
         {isTranscriptLoading && (
