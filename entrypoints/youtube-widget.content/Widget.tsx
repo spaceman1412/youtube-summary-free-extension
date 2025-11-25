@@ -14,6 +14,8 @@ type TranscriptSegment = {
   text: string;
 };
 
+type ActiveView = "summary" | "transcript" | null;
+
 // ============================================================================
 // STYLE DEFINITIONS
 // ============================================================================
@@ -361,6 +363,7 @@ export default function Widget() {
     TranscriptSegment[]
   >([]);
   const [isTranscriptLoading, setIsTranscriptLoading] = useState(false);
+  const [transcriptLocale, setTranscriptLocale] = useState<string | null>(null);
   const [transcriptError, setTranscriptError] = useState<string | null>(null);
   const [summary, setSummary] = useState<string | null>(null);
   const [isSummaryLoading, setIsSummaryLoading] = useState(false);
@@ -368,6 +371,8 @@ export default function Widget() {
   const [apiKey, setApiKey] = useState("");
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [apiKeyNotice, setApiKeyNotice] = useState<string | null>(null);
+  const [activeView, setActiveView] = useState<ActiveView>(null);
+  const [summaryCache, setSummaryCache] = useState<Record<string, string>>({});
 
   const getModelId = () =>
     GEMINI_MODEL_MAP[model] ?? GEMINI_MODEL_MAP["gpt-4o"];
@@ -430,6 +435,9 @@ export default function Widget() {
     setSummary(null);
     setSummaryError(null);
     setTranscriptSegments([]);
+    setTranscriptLocale(null);
+    setActiveView(null);
+    setSummaryCache({});
   };
 
   /**
@@ -473,11 +481,18 @@ export default function Widget() {
   const refreshTranscriptState = async () => {
     const transcript = await fetchTranscriptForVideo();
     setTranscriptSegments(transcript);
+    setTranscriptLocale(language);
     return transcript;
   };
 
+  const transcriptMatchesLanguage =
+    transcriptSegments.length > 0 && transcriptLocale === language;
+
+  const buildSummaryCacheKey = (videoId: string) =>
+    [videoId, language, length, model].join("|");
+
   const ensureTranscriptForSummary = async () => {
-    if (transcriptSegments.length > 0) {
+    if (transcriptMatchesLanguage) {
       return transcriptSegments;
     }
     return refreshTranscriptState();
@@ -495,15 +510,22 @@ export default function Widget() {
       return;
     }
 
+    setActiveView("transcript");
+    setTranscriptError(null);
+
+    if (transcriptMatchesLanguage) {
+      return;
+    }
+
     const videoId = extractCurrentVideoId();
     if (!videoId) {
       setTranscriptError("Unable to detect the current video.");
       setTranscriptSegments([]);
+      setTranscriptLocale(null);
       return;
     }
 
     setIsTranscriptLoading(true);
-    setTranscriptError(null);
 
     try {
       const transcript = await refreshTranscriptState();
@@ -512,6 +534,7 @@ export default function Widget() {
       }
     } catch (error) {
       setTranscriptSegments([]);
+      setTranscriptLocale(null);
       setTranscriptError(
         error instanceof Error
           ? error.message
@@ -529,8 +552,23 @@ export default function Widget() {
       return;
     }
 
+    const videoId = extractCurrentVideoId();
+    if (!videoId) {
+      setSummaryError("Unable to detect the current video.");
+      setSummary(null);
+      return;
+    }
+
+    const cacheKey = buildSummaryCacheKey(videoId);
+    setActiveView("summary");
     setIsSummaryLoading(true);
     setSummaryError(null);
+
+    if (summaryCache[cacheKey]) {
+      setSummary(summaryCache[cacheKey]);
+      setIsSummaryLoading(false);
+      return;
+    }
 
     try {
       const transcript = await ensureTranscriptForSummary();
@@ -570,6 +608,10 @@ export default function Widget() {
         throw new Error("Gemini returned an empty response.");
       }
       setSummary(finalSummary);
+      setSummaryCache((previous) => ({
+        ...previous,
+        [cacheKey]: finalSummary,
+      }));
     } catch (error) {
       setSummary(null);
       setSummaryError(
@@ -612,6 +654,85 @@ export default function Widget() {
       </select>
     </label>
   );
+
+  const renderSummaryPanel = () => (
+    <div style={summarySectionStyle}>
+      {isSummaryLoading && (
+        <div style={transcriptMessageStyle}>Generating summary…</div>
+      )}
+      {!isSummaryLoading && summaryError && (
+        <div style={transcriptErrorStyle}>{summaryError}</div>
+      )}
+      {!isSummaryLoading && !summaryError && summary && (
+        <div style={summaryTextStyle}>
+          {summary
+            .split("\n")
+            .filter((line) => line.trim().length > 0)
+            .map((line, index) => (
+              <p
+                key={`${line}-${index}`}
+                style={{
+                  margin: 0,
+                  marginBottom: "8px",
+                  whiteSpace: "pre-wrap",
+                }}
+              >
+                {line}
+              </p>
+            ))}
+        </div>
+      )}
+      {!isSummaryLoading && !summaryError && !summary && (
+        <div style={transcriptMessageStyle}>
+          Click Summary to generate Google AI insights for this video.
+        </div>
+      )}
+    </div>
+  );
+
+  const renderTranscriptPanel = () => (
+    <div style={transcriptSectionStyle}>
+      {isTranscriptLoading && (
+        <div style={transcriptMessageStyle}>Fetching transcript…</div>
+      )}
+      {!isTranscriptLoading && transcriptError && (
+        <div style={transcriptErrorStyle}>{transcriptError}</div>
+      )}
+      {!isTranscriptLoading &&
+        !transcriptError &&
+        transcriptSegments.length === 0 && (
+          <div style={transcriptMessageStyle}>
+            Click Transcript to load the captions for this video.
+          </div>
+        )}
+      {!isTranscriptLoading && !transcriptError && (
+        <div style={transcriptListStyle}>
+          {transcriptSegments.map((segment, index) => (
+            <div key={`${segment.offset}-${index}`} style={transcriptItemStyle}>
+              <span style={transcriptTimestampStyle}>
+                {formatTimestamp(segment.offset)}
+              </span>
+              <span>{segment.text || "…"}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderPlaceholderPanel = () => (
+    <div style={summarySectionStyle}>
+      <div style={transcriptMessageStyle}>
+        Run Summary or Transcript to preview insights here.
+      </div>
+    </div>
+  );
+
+  const renderContentPanel = () => {
+    if (activeView === "summary") return renderSummaryPanel();
+    if (activeView === "transcript") return renderTranscriptPanel();
+    return renderPlaceholderPanel();
+  };
 
   const renderHeader = () => (
     <div style={headerStyle}>
@@ -747,68 +868,7 @@ export default function Widget() {
           </button>
         </div>
       </div>
-      <div style={summarySectionStyle}>
-        {isSummaryLoading && (
-          <div style={transcriptMessageStyle}>Generating summary…</div>
-        )}
-        {!isSummaryLoading && summaryError && (
-          <div style={transcriptErrorStyle}>{summaryError}</div>
-        )}
-        {!isSummaryLoading && !summaryError && summary && (
-          <div style={summaryTextStyle}>
-            {summary
-              .split("\n")
-              .filter((line) => line.trim().length > 0)
-              .map((line, index) => (
-                <p
-                  key={`${line}-${index}`}
-                  style={{
-                    margin: 0,
-                    marginBottom: "8px",
-                    whiteSpace: "pre-wrap",
-                  }}
-                >
-                  {line}
-                </p>
-              ))}
-          </div>
-        )}
-        {!isSummaryLoading && !summaryError && !summary && (
-          <div style={transcriptMessageStyle}>
-            Click Summary to generate Google AI insights for this video.
-          </div>
-        )}
-      </div>
-      <div style={transcriptSectionStyle}>
-        {isTranscriptLoading && (
-          <div style={transcriptMessageStyle}>Fetching transcript…</div>
-        )}
-        {!isTranscriptLoading && transcriptError && (
-          <div style={transcriptErrorStyle}>{transcriptError}</div>
-        )}
-        {!isTranscriptLoading &&
-          !transcriptError &&
-          transcriptSegments.length === 0 && (
-            <div style={transcriptMessageStyle}>
-              Click Transcript to load the captions for this video.
-            </div>
-          )}
-        {!isTranscriptLoading && !transcriptError && (
-          <div style={transcriptListStyle}>
-            {transcriptSegments.map((segment, index) => (
-              <div
-                key={`${segment.offset}-${index}`}
-                style={transcriptItemStyle}
-              >
-                <span style={transcriptTimestampStyle}>
-                  {formatTimestamp(segment.offset)}
-                </span>
-                <span>{segment.text || "…"}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      {renderContentPanel()}
     </div>
   );
 }
