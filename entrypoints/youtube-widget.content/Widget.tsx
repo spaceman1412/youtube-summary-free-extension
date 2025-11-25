@@ -1,6 +1,19 @@
 // src/entrypoints/youtube-widget.content/Widget.tsx
+/**
+ * React component for the YouTube Summary Widget.
+ * Displays a UI card with options for language, model, and summary length,
+ * along with action buttons for Summary, Transcript, and Chat features.
+ */
+
 import { type CSSProperties, useState } from "react";
 
+// ============================================================================
+// STYLE DEFINITIONS
+// ============================================================================
+
+/**
+ * Main card container style - dark theme with rounded corners and shadow
+ */
 const cardStyle: CSSProperties = {
   borderRadius: "16px",
   padding: "16px",
@@ -13,6 +26,9 @@ const cardStyle: CSSProperties = {
   gap: "8px",
 };
 
+/**
+ * Inner section style - nested container for form controls and buttons
+ */
 const sectionStyle: CSSProperties = {
   background: "rgba(255,255,255,0.02)",
   borderRadius: "12px",
@@ -24,6 +40,9 @@ const sectionStyle: CSSProperties = {
   boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
 };
 
+/**
+ * Row container for the dropdown selectors (Language, Model, Length)
+ */
 const pickerRowStyle: CSSProperties = {
   display: "flex",
   gap: "4px",
@@ -31,6 +50,9 @@ const pickerRowStyle: CSSProperties = {
   justifyContent: "center",
 };
 
+/**
+ * Label style for form inputs - small uppercase text with spacing
+ */
 const inputLabelStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
@@ -42,6 +64,9 @@ const inputLabelStyle: CSSProperties = {
   color: "rgba(255,255,255,0.7)",
 };
 
+/**
+ * Dropdown select input style - dark theme with rounded corners
+ */
 const selectStyle: CSSProperties = {
   minWidth: "100px",
   borderRadius: "10px",
@@ -56,6 +81,9 @@ const selectStyle: CSSProperties = {
   transition: "background 0.2s ease",
 };
 
+/**
+ * Row container for action buttons (Summary, Transcript, Chat)
+ */
 const actionRowStyle: CSSProperties = {
   display: "flex",
   gap: "6px",
@@ -63,6 +91,9 @@ const actionRowStyle: CSSProperties = {
   justifyContent: "center",
 };
 
+/**
+ * Header section style - contains brand logo and action icons
+ */
 const headerStyle: CSSProperties = {
   display: "flex",
   alignItems: "center",
@@ -71,6 +102,9 @@ const headerStyle: CSSProperties = {
   borderBottom: "1px solid rgba(255,255,255,0.08)",
 };
 
+/**
+ * Brand/logo container style - displays "Copilot" branding
+ */
 const brandStyle: CSSProperties = {
   display: "flex",
   alignItems: "center",
@@ -81,6 +115,9 @@ const brandStyle: CSSProperties = {
   color: "rgba(255,255,255,0.7)",
 };
 
+/**
+ * Brand icon container style - circular icon box
+ */
 const brandIconStyle: CSSProperties = {
   width: "30px",
   height: "30px",
@@ -93,11 +130,17 @@ const brandIconStyle: CSSProperties = {
   color: "#f5f5f5",
 };
 
+/**
+ * Container for header action buttons (expand, refresh icons)
+ */
 const headerActionsStyle: CSSProperties = {
   display: "flex",
   gap: "6px",
 };
 
+/**
+ * Small icon button style - used for header actions (circular buttons)
+ */
 const iconButtonStyle: CSSProperties = {
   width: "32px",
   height: "32px",
@@ -112,6 +155,9 @@ const iconButtonStyle: CSSProperties = {
   cursor: "pointer",
 };
 
+/**
+ * Base button style - shared styles for all action buttons
+ */
 const buttonBase: CSSProperties = {
   flex: 1,
   minWidth: "85px",
@@ -128,6 +174,9 @@ const buttonBase: CSSProperties = {
   gap: "4px",
 };
 
+/**
+ * Secondary button style - transparent background (for Transcript, Chat buttons)
+ */
 const secondaryButtonStyle: CSSProperties = {
   ...buttonBase,
   background: "transparent",
@@ -141,29 +190,60 @@ const primaryButtonStyle: CSSProperties = {
   borderColor: "transparent",
 };
 
+// ============================================================================
+// DATA CONFIGURATIONS
+// ============================================================================
+
+/**
+ * Available languages for summary generation
+ */
 const languages = [
   { label: "English", value: "en" },
   { label: "Español", value: "es" },
   { label: "日本語", value: "jp" },
 ];
 
+/**
+ * Available AI models for summary generation
+ */
 const models = [
   { label: "GPT-4o", value: "gpt-4o" },
   { label: "Sonnet 3.5", value: "sonnet-3.5" },
   { label: "Mini", value: "mini" },
 ];
 
+/**
+ * Available summary length options
+ */
 const lengths = [
   { label: "Concise", value: "short" },
   { label: "Medium", value: "medium" },
   { label: "Detailed", value: "long" },
 ];
 
+// ============================================================================
+// COMPONENT
+// ============================================================================
+
+/**
+ * Main Widget component.
+ * Manages user preferences (language, model, length) and renders the UI.
+ */
 export default function Widget() {
+  // State for user-selected options
   const [language, setLanguage] = useState(languages[0]?.value ?? "en");
   const [model, setModel] = useState(models[0]?.value ?? "gpt-4o");
   const [length, setLength] = useState(lengths[1]?.value ?? "medium");
 
+  /**
+   * Helper function to render a labeled dropdown select.
+   * 
+   * @param label - Display label for the select
+   * @param value - Current selected value
+   * @param onChange - Callback when selection changes
+   * @param options - Array of {label, value} options
+   * @returns JSX for a labeled select element
+   */
   const renderSelect = (
     label: string,
     value: string,
@@ -188,32 +268,42 @@ export default function Widget() {
 
   return (
     <div style={cardStyle}>
+      {/* Header section with branding and action icons */}
       <div style={headerStyle}>
         <div style={brandStyle}>
           <div style={brandIconStyle}>◎</div>
           <span>Copilot</span>
         </div>
         <div style={headerActionsStyle}>
+          {/* Expand/collapse button (not yet implemented) */}
           <button style={iconButtonStyle}>⤴︎</button>
+          {/* Refresh button (not yet implemented) */}
           <button style={iconButtonStyle}>⟳</button>
         </div>
       </div>
+
+      {/* Main content section */}
       <div style={sectionStyle}>
+        {/* Dropdown selectors for configuration */}
         <div style={pickerRowStyle}>
           {renderSelect("Language", language, setLanguage, languages)}
           {renderSelect("Model", model, setModel, models)}
           {renderSelect("Length", length, setLength, lengths)}
         </div>
 
+        {/* Action buttons */}
         <div style={actionRowStyle}>
+          {/* Primary action: Generate summary */}
           <button style={primaryButtonStyle}>
             <span>✨</span>
             <span>Summary</span>
           </button>
+          {/* Secondary action: View transcript */}
           <button style={secondaryButtonStyle}>
             <span>📄</span>
             <span>Transcript</span>
           </button>
+          {/* Secondary action: Open chat */}
           <button style={secondaryButtonStyle}>
             <span>💬</span>
             <span>Chat</span>
