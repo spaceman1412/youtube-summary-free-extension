@@ -4,6 +4,6 @@ import { defineConfig } from "wxt";
 export default defineConfig({
   modules: ["@wxt-dev/module-react"],
   webExt: {
-    startUrls: ["https://www.youtube.com/watch?v=6FsYk9GIv2Y"],
+    startUrls: ["https://www.youtube.com/watch?v=4bIDbKzMZHI"],
   },
 });

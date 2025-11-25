@@ -6,6 +6,10 @@
  */
 
 import { type CSSProperties, useState } from "react";
+import {
+  fetchTranscript,
+  type TranscriptResponse,
+} from "youtube-transcript-plus";
 
 // ============================================================================
 // STYLE DEFINITIONS
@@ -138,6 +142,48 @@ const headerActionsStyle: CSSProperties = {
   gap: "6px",
 };
 
+const transcriptSectionStyle: CSSProperties = {
+  ...sectionStyle,
+  marginTop: "8px",
+  maxHeight: "220px",
+  overflowY: "auto",
+  gap: "10px",
+};
+
+const transcriptListStyle: CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "8px",
+};
+
+const transcriptItemStyle: CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  padding: "10px",
+  borderRadius: "10px",
+  background: "rgba(255,255,255,0.03)",
+  border: "1px solid rgba(255,255,255,0.05)",
+};
+
+const transcriptTimestampStyle: CSSProperties = {
+  fontSize: "10px",
+  color: "rgba(255,255,255,0.6)",
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
+  marginBottom: "4px",
+};
+
+const transcriptMessageStyle: CSSProperties = {
+  fontSize: "12px",
+  color: "rgba(255,255,255,0.75)",
+  textAlign: "center",
+};
+
+const transcriptErrorStyle: CSSProperties = {
+  ...transcriptMessageStyle,
+  color: "#ff8a8a",
+};
+
 /**
  * Small icon button style - used for header actions (circular buttons)
  */
@@ -234,6 +280,74 @@ export default function Widget() {
   const [language, setLanguage] = useState(languages[0]?.value ?? "en");
   const [model, setModel] = useState(models[0]?.value ?? "gpt-4o");
   const [length, setLength] = useState(lengths[1]?.value ?? "medium");
+  const [transcriptSegments, setTranscriptSegments] = useState<
+    TranscriptResponse[]
+  >([]);
+  const [isTranscriptLoading, setIsTranscriptLoading] = useState(false);
+  const [transcriptError, setTranscriptError] = useState<string | null>(null);
+
+  /**
+   * Extracts a video ID from the current URL.
+   * Handles both standard watch URLs and youtu.be short links.
+   */
+  const extractCurrentVideoId = () => {
+    try {
+      const url = new URL(window.location.href);
+      const paramId = url.searchParams.get("v");
+      if (paramId) return paramId;
+    } catch {
+      // Ignore URL parsing failures and fall back to regex.
+    }
+    const match = window.location.href.match(
+      /(?:v=|\/|v\/|embed\/|watch\?.*v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+    );
+    return match?.[1];
+  };
+
+  /**
+   * Formats transcript timestamps into mm:ss for readability.
+   */
+  const formatTimestamp = (offset: number) => {
+    const totalSeconds = Math.floor(offset);
+    const minutes = Math.floor(totalSeconds / 60)
+      .toString()
+      .padStart(2, "0");
+    const seconds = (totalSeconds % 60).toString().padStart(2, "0");
+    return `${minutes}:${seconds}`;
+  };
+
+  /**
+   * Handles click on the Transcript button by fetching and storing transcript data.
+   */
+  const handleTranscriptClick = async () => {
+    if (isTranscriptLoading) return;
+
+    const videoId = extractCurrentVideoId();
+    if (!videoId) {
+      setTranscriptError("Unable to detect the current video.");
+      setTranscriptSegments([]);
+      return;
+    }
+
+    setIsTranscriptLoading(true);
+    setTranscriptError(null);
+
+    try {
+      const transcript = await fetchTranscript(videoId, {
+        lang: language,
+      });
+      setTranscriptSegments(transcript);
+    } catch (error) {
+      setTranscriptSegments([]);
+      setTranscriptError(
+        error instanceof Error
+          ? error.message
+          : "Failed to fetch transcript. Please try again."
+      );
+    } finally {
+      setIsTranscriptLoading(false);
+    }
+  };
 
   /**
    * Helper function to render a labeled dropdown select.
@@ -299,9 +413,16 @@ export default function Widget() {
             <span>Summary</span>
           </button>
           {/* Secondary action: View transcript */}
-          <button style={secondaryButtonStyle}>
+          <button
+            style={{
+              ...secondaryButtonStyle,
+              opacity: isTranscriptLoading ? 0.7 : 1,
+            }}
+            onClick={handleTranscriptClick}
+            disabled={isTranscriptLoading}
+          >
             <span>📄</span>
-            <span>Transcript</span>
+            <span>{isTranscriptLoading ? "Loading…" : "Transcript"}</span>
           </button>
           {/* Secondary action: Open chat */}
           <button style={secondaryButtonStyle}>
@@ -309,6 +430,33 @@ export default function Widget() {
             <span>Chat</span>
           </button>
         </div>
+      </div>
+      <div style={transcriptSectionStyle}>
+        {isTranscriptLoading && (
+          <div style={transcriptMessageStyle}>Fetching transcript…</div>
+        )}
+        {!isTranscriptLoading && transcriptError && (
+          <div style={transcriptErrorStyle}>{transcriptError}</div>
+        )}
+        {!isTranscriptLoading &&
+          !transcriptError &&
+          transcriptSegments.length === 0 && (
+            <div style={transcriptMessageStyle}>
+              Click Transcript to load the captions for this video.
+            </div>
+          )}
+        {!isTranscriptLoading && !transcriptError && (
+          <div style={transcriptListStyle}>
+            {transcriptSegments.map((segment, index) => (
+              <div key={`${segment.offset}-${index}`} style={transcriptItemStyle}>
+                <span style={transcriptTimestampStyle}>
+                  {formatTimestamp(segment.offset)}
+                </span>
+                <span>{segment.text || "…"}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

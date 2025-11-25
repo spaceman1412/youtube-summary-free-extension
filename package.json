@@ -16,7 +16,8 @@
   },
   "dependencies": {
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "youtube-transcript-plus": "github:spaceman1412/youtube-transcript-plus-nonodejs"
   },
   "devDependencies": {
     "@types/react": "^19.1.12",

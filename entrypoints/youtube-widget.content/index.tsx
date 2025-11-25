@@ -7,6 +7,7 @@
 
 import { createRoot } from "react-dom/client";
 import Widget from "./Widget";
+import { fetchTranscript } from "youtube-transcript-plus";
 
 // CSS selector for YouTube's secondary sidebar (where video recommendations appear)
 const TARGET_SELECTOR = "#secondary";
@@ -96,6 +97,8 @@ export default defineContentScript({
         // Create a div inside the Shadow DOM to mount React
         const mount = document.createElement("div");
         container.append(mount);
+
+        console.log(fetchTranscript("dQw4w9WgXcQ"));
 
         // Create React root and render the Widget component
         const root = createRoot(mount);

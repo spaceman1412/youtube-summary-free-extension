@@ -14,6 +14,9 @@ importers:
       react-dom:
         specifier: ^19.1.1
         version: 19.2.0(react@19.2.0)
+      youtube-transcript-plus:
+        specifier: github:spaceman1412/youtube-transcript-plus-nonodejs
+        version: https://codeload.github.com/spaceman1412/youtube-transcript-plus-nonodejs/tar.gz/f67401057ea0b5340e2626b737d4262aab655df0
     devDependencies:
       '@types/react':
         specifier: ^19.1.12
@@ -1783,6 +1786,11 @@ packages:
     resolution: {integrity: sha512-7dSzzRQ++CKnNI/krKnYRV7JKKPUXMEh61soaHKg9mrWEhzFWhFnxPxGl+69cD1Ou63C13NUPCnmIcrvqCuM6w==}
     engines: {node: '>=12'}
 
+  youtube-transcript-plus@https://codeload.github.com/spaceman1412/youtube-transcript-plus-nonodejs/tar.gz/f67401057ea0b5340e2626b737d4262aab655df0:
+    resolution: {tarball: https://codeload.github.com/spaceman1412/youtube-transcript-plus-nonodejs/tar.gz/f67401057ea0b5340e2626b737d4262aab655df0}
+    version: 1.1.1
+    engines: {node: '>=18.0.0'}
+
   zip-dir@2.0.0:
     resolution: {integrity: sha512-uhlsJZWz26FLYXOD6WVuq+fIcZ3aBPGo/cFdiLlv3KNwpa52IF3ISV8fLhQLiqVu5No3VhlqlgthN6gehil1Dg==}
 
@@ -3514,6 +3522,8 @@ snapshots:
       string-width: 4.2.3
       y18n: 5.0.8
       yargs-parser: 21.1.1
+
+  youtube-transcript-plus@https://codeload.github.com/spaceman1412/youtube-transcript-plus-nonodejs/tar.gz/f67401057ea0b5340e2626b737d4262aab655df0: {}
 
   zip-dir@2.0.0:
     dependencies:
