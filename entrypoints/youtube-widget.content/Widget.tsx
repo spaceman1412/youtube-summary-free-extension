@@ -219,7 +219,7 @@ const renderModelSelect = (
  */
 export default function Widget() {
   // State for user-selected options
-  const [language, setLanguage] = useState(languages[0]?.value ?? "en");
+  const [language, setLanguage] = useState("en");
   const [model, setModel] = useState(
     models[2]?.value ?? "gemini-2.5-flash-lite"
   );
