@@ -20,27 +20,27 @@ export const models: ModelOption[] = [
   {
     label: "Gemini 2.5 Pro",
     value: "gemini-2.5-pro",
-    description: "A Gemini model designed for complex reasoning.",
+    description: "Complex reasoning model.",
   },
   {
     label: "Gemini 2.5 Flash",
     value: "gemini-2.5-flash",
-    description: "A Gemini model offering a balance of price and performance.",
+    description: "Balance of price and performance.",
   },
   {
     label: "Gemini 2.5 Flash-Lite",
     value: "gemini-2.5-flash-lite",
-    description: "A cost-effective Gemini model that supports high-throughput tasks.",
+    description: "Cost-effective for high-throughput tasks.",
   },
   {
     label: "Gemini 2.0 Flash",
     value: "gemini-2.0-flash",
-    description: "A Gemini 2.0 model offering well-rounded capabilities with a focus on price-performance.",
+    description: "Well-rounded with price-performance focus.",
   },
   {
     label: "Gemini 2.0 Flash-Lite",
     value: "gemini-2.0-flash-lite",
-    description: "A Gemini 2.0 Flash model optimized for cost efficiency and low latency.",
+    description: "Cost-efficient and low latency.",
   },
 ];
 
@@ -73,4 +73,3 @@ export const MAX_TRANSCRIPT_CHARACTERS = 6000;
 
 export const API_KEY_STORAGE_KEY = "googleAIStudioApiKey";
 export const GOOGLE_API_KEY_URL = "https://aistudio.google.com/app/apikey";
-
