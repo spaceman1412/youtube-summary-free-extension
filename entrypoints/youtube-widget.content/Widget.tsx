@@ -261,6 +261,9 @@ export default function Widget() {
   const [hoveredHeaderButton, setHoveredHeaderButton] = useState<
     "edit" | "minimize" | null
   >(null);
+  const [hoveredAction, setHoveredAction] = useState<
+    "summary" | "transcript" | "chat" | null
+  >(null);
   const chatMessagesEndRef = useRef<HTMLDivElement>(null);
   const chatMessagesContainerRef = useRef<HTMLDivElement>(null);
   const currentVideoIdRef = useRef<string | undefined>(undefined);
@@ -1028,35 +1031,67 @@ export default function Widget() {
             </div>
             <div style={actionRowStyle}>
               <button
-                style={
-                  activeView === "summary" || isSummaryLoading
+                style={{
+                  ...((activeView === "summary" || isSummaryLoading
                     ? tabButtonActiveStyle
-                    : tabButtonStyle
-                }
+                    : tabButtonStyle) as typeof tabButtonStyle),
+                  opacity:
+                    hoveredAction === "summary" && !isSummaryLoading ? 1 : 0.85,
+                  transform:
+                    hoveredAction === "summary" && !isSummaryLoading
+                      ? "translateY(-1px)"
+                      : "translateY(0)",
+                }}
                 onClick={handleSummaryClick}
                 disabled={isSummaryLoading}
+                onMouseEnter={() => setHoveredAction("summary")}
+                onMouseLeave={() => setHoveredAction(null)}
               >
                 <span>✨</span>
                 <span>{isSummaryLoading ? "…" : "Summary"}</span>
               </button>
               <button
-                style={
-                  activeView === "transcript"
+                style={{
+                  ...((activeView === "transcript"
                     ? tabButtonActiveStyle
-                    : tabButtonStyle
-                }
+                    : tabButtonStyle) as typeof tabButtonStyle),
+                  opacity:
+                    hoveredAction === "transcript" && !isTranscriptLoading
+                      ? 1
+                      : 0.85,
+                  transform:
+                    hoveredAction === "transcript" && !isTranscriptLoading
+                      ? "translateY(-1px)"
+                      : "translateY(0)",
+                }}
                 onClick={handleTranscriptClick}
                 disabled={isTranscriptLoading}
+                onMouseEnter={() => setHoveredAction("transcript")}
+                onMouseLeave={() => setHoveredAction(null)}
               >
                 <span>📄</span>
                 <span>{isTranscriptLoading ? "…" : "Transcript"}</span>
               </button>
               <button
-                style={
-                  activeView === "chat" ? tabButtonActiveStyle : tabButtonStyle
-                }
+                style={{
+                  ...((activeView === "chat"
+                    ? tabButtonActiveStyle
+                    : tabButtonStyle) as typeof tabButtonStyle),
+                  opacity:
+                    hoveredAction === "chat" &&
+                    !(isChatLoading && activeView !== "chat")
+                      ? 1
+                      : 0.85,
+                  transform:
+                    hoveredAction === "chat" &&
+                    !(isChatLoading && activeView !== "chat")
+                      ? "translateY(-1px)"
+                      : "translateY(0)",
+                }}
                 onClick={handleChatClick}
                 disabled={isChatLoading && activeView !== "chat"}
+                onMouseEnter={() => setHoveredAction("chat")}
+                onMouseLeave={() => setHoveredAction(null)}
               >
                 <span>💬</span>
                 <span>Chat</span>
