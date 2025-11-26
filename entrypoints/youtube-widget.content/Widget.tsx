@@ -66,6 +66,11 @@ import { generateSummary, buildSummaryCacheKey } from "./summaryService";
 import { generateChatResponse } from "./chatService";
 import { getStoredApiKey, saveApiKey, removeApiKey } from "./apiKeyService";
 
+const PREFERENCES_STORAGE_KEY = "yt-summary-preferences";
+
+const isValidOption = (value: string, options: { value: string }[]): boolean =>
+  options.some((option) => option.value === value);
+
 /**
  * Helper function to render a labeled dropdown select.
  */
@@ -260,6 +265,57 @@ export default function Widget() {
       setApiKeyInput(storedKey);
     }
   }, []);
+
+  useEffect(() => {
+    try {
+      const storedPrefs = localStorage.getItem(PREFERENCES_STORAGE_KEY);
+      if (!storedPrefs) {
+        return;
+      }
+      const parsed = JSON.parse(storedPrefs);
+      if (!parsed || typeof parsed !== "object") {
+        return;
+      }
+
+      const {
+        language: storedLanguage,
+        model: storedModel,
+        length: storedLength,
+      } = parsed as Partial<Record<"language" | "model" | "length", string>>;
+
+      if (
+        typeof storedLanguage === "string" &&
+        isValidOption(storedLanguage, languages)
+      ) {
+        setLanguage(storedLanguage);
+      }
+
+      if (
+        typeof storedModel === "string" &&
+        isValidOption(storedModel, models)
+      ) {
+        setModel(storedModel);
+      }
+
+      if (
+        typeof storedLength === "string" &&
+        isValidOption(storedLength, lengths)
+      ) {
+        setLength(storedLength);
+      }
+    } catch (error) {
+      console.error("Failed to load picker preferences", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      const payload = JSON.stringify({ language, model, length });
+      localStorage.setItem(PREFERENCES_STORAGE_KEY, payload);
+    } catch (error) {
+      console.error("Failed to save picker preferences", error);
+    }
+  }, [language, model, length]);
 
   // Reset chat messages when video changes
   useEffect(() => {
