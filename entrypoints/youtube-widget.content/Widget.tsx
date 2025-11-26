@@ -4,13 +4,8 @@
  * along with action buttons for Summary, Transcript, and Chat features.
  */
 
-import { useEffect, useState, useRef } from "react";
-import type {
-  TranscriptSegment,
-  ActiveView,
-  ChatMessage,
-  ModelOption,
-} from "./types";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { ActiveView, ChatMessage, ModelOption } from "./types";
 import { languages, models, lengths, GOOGLE_API_KEY_URL } from "./constants";
 import {
   cardStyle,
@@ -63,16 +58,11 @@ import {
   seekToTimestamp,
   parseTimestampsFromText,
 } from "./utils";
-import { fetchTranscriptForVideo } from "./transcriptService";
-import { generateSummary, buildSummaryCacheKey } from "./summaryService";
 import { generateChatResponse } from "./chatService";
-import { getStoredApiKey, saveApiKey, removeApiKey } from "./apiKeyService";
-import { validateApiKey } from "./apiValidationService";
-
-const PREFERENCES_STORAGE_KEY = "yt-summary-preferences";
-
-const isValidOption = (value: string, options: { value: string }[]): boolean =>
-  options.some((option) => option.value === value);
+import { useApiKey } from "./hooks/useApiKey";
+import { usePreferences } from "./hooks/usePreferences";
+import { useSummary } from "./hooks/useSummary";
+import { useTranscript } from "./hooks/useTranscript";
 
 /**
  * Helper function to render a labeled dropdown select.
@@ -228,36 +218,49 @@ const renderModelSelect = (
  * Manages user preferences (language, model, length) and renders the UI.
  */
 export default function Widget() {
-  // State for user-selected options
-  const [language, setLanguage] = useState("en");
-  const [model, setModel] = useState(
-    models[2]?.value ?? "gemini-2.5-flash-lite"
-  );
-  const [length, setLength] = useState(lengths[1]?.value ?? "medium");
-  const [transcriptSegments, setTranscriptSegments] = useState<
-    TranscriptSegment[]
-  >([]);
-  const [isTranscriptLoading, setIsTranscriptLoading] = useState(false);
-  const [transcriptLocale, setTranscriptLocale] = useState<string | null>(null);
-  const [transcriptError, setTranscriptError] = useState<string | null>(null);
-  const [summary, setSummary] = useState<string | null>(null);
-  const [isSummaryLoading, setIsSummaryLoading] = useState(false);
-  const [summaryError, setSummaryError] = useState<string | null>(null);
-  const [apiKey, setApiKey] = useState("");
-  const [apiKeyInput, setApiKeyInput] = useState("");
-  const [apiKeyNotice, setApiKeyNotice] = useState<string | null>(null);
-  const [apiKeyValidationError, setApiKeyValidationError] = useState<
-    string | null
-  >(null);
-  const [isValidatingApiKey, setIsValidatingApiKey] = useState(false);
+  const {
+    apiKey,
+    apiKeyInput,
+    apiKeyNotice,
+    apiKeyValidationError,
+    isValidatingApiKey,
+    isEditingApiKey,
+    showApiKeyGate,
+    handleApiKeyInputChange,
+    handleSaveApiKey,
+    handleResetApiKey: resetStoredApiKey,
+    handleToggleApiKeyEditor,
+  } = useApiKey();
+
+  const { language, setLanguage, model, setModel, length, setLength } =
+    usePreferences();
+
+  const {
+    summary,
+    summaryError,
+    isSummaryLoading,
+    requestSummary,
+    clearSummary,
+    setSummaryErrorMessage,
+  } = useSummary();
+
+  const {
+    transcriptSegments,
+    transcriptLocale,
+    isTranscriptLoading,
+    transcriptError,
+    loadTranscript,
+    ensureTranscript,
+    clearTranscript,
+    setTranscriptErrorMessage,
+  } = useTranscript();
+
   const [activeView, setActiveView] = useState<ActiveView>(null);
-  const [summaryCache, setSummaryCache] = useState<Record<string, string>>({});
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [isEditingApiKey, setIsEditingApiKey] = useState(false);
   const [hoveredHeaderButton, setHoveredHeaderButton] = useState<
     "edit" | "minimize" | null
   >(null);
@@ -271,65 +274,22 @@ export default function Widget() {
   const isUserScrollingRef = useRef<boolean>(false);
   const [hoveredTimestamp, setHoveredTimestamp] = useState<number | null>(null);
 
-  // Load API key from storage on mount
-  useEffect(() => {
-    const storedKey = getStoredApiKey();
-    if (storedKey) {
-      setApiKey(storedKey);
-      setApiKeyInput(storedKey);
-    }
-  }, []);
-
-  useEffect(() => {
-    try {
-      const storedPrefs = localStorage.getItem(PREFERENCES_STORAGE_KEY);
-      if (!storedPrefs) {
-        return;
-      }
-      const parsed = JSON.parse(storedPrefs);
-      if (!parsed || typeof parsed !== "object") {
-        return;
-      }
-
-      const {
-        language: storedLanguage,
-        model: storedModel,
-        length: storedLength,
-      } = parsed as Partial<Record<"language" | "model" | "length", string>>;
-
-      if (
-        typeof storedLanguage === "string" &&
-        isValidOption(storedLanguage, languages)
-      ) {
-        setLanguage(storedLanguage);
-      }
-
-      if (
-        typeof storedModel === "string" &&
-        isValidOption(storedModel, models)
-      ) {
-        setModel(storedModel);
-      }
-
-      if (
-        typeof storedLength === "string" &&
-        isValidOption(storedLength, lengths)
-      ) {
-        setLength(storedLength);
-      }
-    } catch (error) {
-      console.error("Failed to load picker preferences", error);
-    }
-  }, []);
-
-  useEffect(() => {
-    try {
-      const payload = JSON.stringify({ language, model, length });
-      localStorage.setItem(PREFERENCES_STORAGE_KEY, payload);
-    } catch (error) {
-      console.error("Failed to save picker preferences", error);
-    }
-  }, [language, model, length]);
+  const handleResetApiKey = useCallback(() => {
+    resetStoredApiKey();
+    clearSummary();
+    clearTranscript();
+    setChatMessages([]);
+    setChatInput("");
+    setChatError(null);
+    setActiveView(null);
+  }, [
+    resetStoredApiKey,
+    clearSummary,
+    clearTranscript,
+    setChatMessages,
+    setChatInput,
+    setChatError,
+  ]);
 
   // Reset chat messages when video changes
   useEffect(() => {
@@ -375,63 +335,6 @@ export default function Widget() {
     }
   }, [chatMessages.length, activeView]);
 
-  const handleApiKeyInputChange = (value: string) => {
-    setApiKeyInput(value);
-    setApiKeyNotice(null);
-    setApiKeyValidationError(null);
-  };
-
-  const handleSaveApiKey = async () => {
-    if (isValidatingApiKey) {
-      return;
-    }
-    const trimmed = apiKeyInput.trim();
-    if (!trimmed) {
-      setApiKeyNotice("Please paste a Google AI Studio API key to continue.");
-      return;
-    }
-    setApiKeyNotice("Testing API key…");
-    setApiKeyValidationError(null);
-    setIsValidatingApiKey(true);
-    try {
-      await validateApiKey(trimmed);
-      saveApiKey(trimmed);
-      setApiKey(trimmed);
-      setApiKeyNotice(
-        "API key validated and saved. You can update it anytime."
-      );
-      setIsEditingApiKey(false);
-    } catch (error) {
-      setApiKeyNotice(null);
-      setApiKeyValidationError(
-        error instanceof Error
-          ? error.message
-          : "Failed to validate API key. Please try again."
-      );
-    } finally {
-      setIsValidatingApiKey(false);
-    }
-  };
-
-  const handleResetApiKey = () => {
-    removeApiKey();
-    setApiKey("");
-    setApiKeyInput("");
-    setApiKeyNotice(null);
-    setSummary(null);
-    setSummaryError(null);
-    setTranscriptSegments([]);
-    setTranscriptLocale(null);
-    setActiveView(null);
-    setSummaryCache({});
-    setChatMessages([]);
-    setChatInput("");
-    setChatError(null);
-    setIsEditingApiKey(false);
-    setApiKeyValidationError(null);
-    setIsValidatingApiKey(false);
-  };
-
   const handleMinimize = () => {
     setIsMinimized(true);
   };
@@ -440,126 +343,62 @@ export default function Widget() {
     setIsMinimized(false);
   };
 
-  const handleToggleApiKeyEditor = () => {
-    if (!apiKey && !isEditingApiKey) {
-      return;
-    }
-    setIsEditingApiKey((previous) => {
-      const next = !previous;
-      if (next) {
-        setApiKeyInput(apiKey);
-      }
-      return next;
-    });
-    setApiKeyNotice(null);
-  };
-
   const transcriptMatchesLanguage =
     transcriptSegments.length > 0 && transcriptLocale === language;
-  const showApiKeyGate = !apiKey || isEditingApiKey;
+
+  const ensureTranscriptForChat = useCallback(async () => {
+    try {
+      return await ensureTranscript(language);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to fetch transcript. Please try again.";
+      setChatError(message);
+      throw error;
+    }
+  }, [ensureTranscript, language, setChatError]);
 
   const handleTranscriptClick = async () => {
     if (isTranscriptLoading) return;
     if (!apiKey) {
-      setTranscriptError(
+      setTranscriptErrorMessage(
         "Please add your Google AI Studio API key to continue."
       );
       return;
     }
 
     setActiveView("transcript");
-    setTranscriptError(null);
+    setTranscriptErrorMessage(null);
 
     if (transcriptMatchesLanguage) {
       return;
     }
 
-    const videoId = extractCurrentVideoId();
-    if (!videoId) {
-      setTranscriptError("Unable to detect the current video.");
-      setTranscriptSegments([]);
-      setTranscriptLocale(null);
-      return;
-    }
-
-    setIsTranscriptLoading(true);
-
     try {
-      const transcript = await fetchTranscriptForVideo(language);
-      setTranscriptSegments(transcript);
-      setTranscriptLocale(language);
-      if (!transcript.length) {
-        setTranscriptError("Transcript was empty for this video.");
-      }
-    } catch (error) {
-      setTranscriptSegments([]);
-      setTranscriptLocale(null);
-      setTranscriptError(
-        error instanceof Error
-          ? error.message
-          : "Failed to fetch transcript. Please try again."
-      );
-    } finally {
-      setIsTranscriptLoading(false);
+      await loadTranscript(language);
+    } catch {
+      // Errors handled inside useTranscript
     }
   };
 
   const handleSummaryClick = async () => {
     if (isSummaryLoading) return;
     if (!apiKey) {
-      setSummaryError("Please add your Google AI Studio API key to continue.");
+      setSummaryErrorMessage(
+        "Please add your Google AI Studio API key to continue."
+      );
       return;
     }
 
-    const videoId = extractCurrentVideoId();
-    if (!videoId) {
-      setSummaryError("Unable to detect the current video.");
-      setSummary(null);
-      return;
-    }
-
-    const cacheKey = buildSummaryCacheKey(videoId, language, length, model);
     setActiveView("summary");
-    setIsSummaryLoading(true);
-    setSummaryError(null);
-
-    if (summaryCache[cacheKey]) {
-      setSummary(summaryCache[cacheKey]);
-      setIsSummaryLoading(false);
-      return;
-    }
-
-    try {
-      // Ensure we have transcript
-      let transcript = transcriptSegments;
-      if (!transcriptMatchesLanguage) {
-        transcript = await fetchTranscriptForVideo(language);
-        setTranscriptSegments(transcript);
-        setTranscriptLocale(language);
-      }
-
-      const finalSummary = await generateSummary(
-        apiKey,
-        transcript,
-        model,
-        language,
-        length
-      );
-      setSummary(finalSummary);
-      setSummaryCache((previous) => ({
-        ...previous,
-        [cacheKey]: finalSummary,
-      }));
-    } catch (error) {
-      setSummary(null);
-      setSummaryError(
-        error instanceof Error
-          ? error.message
-          : "Failed to generate summary. Please try again."
-      );
-    } finally {
-      setIsSummaryLoading(false);
-    }
+    await requestSummary({
+      apiKey,
+      language,
+      length,
+      model,
+      ensureTranscript: () => ensureTranscript(language),
+    });
   };
 
   const handleChatClick = async () => {
@@ -568,34 +407,20 @@ export default function Widget() {
       return;
     }
 
-    const videoId = extractCurrentVideoId();
-    if (!videoId) {
-      setChatError("Unable to detect the current video.");
-      return;
-    }
-
     setActiveView("chat");
     setChatError(null);
 
-    // Ensure we have transcript
-    if (!transcriptMatchesLanguage) {
-      setIsChatLoading(true);
-      try {
-        const transcript = await fetchTranscriptForVideo(language);
-        setTranscriptSegments(transcript);
-        setTranscriptLocale(language);
-        if (!transcript.length) {
-          setChatError("Transcript was empty for this video.");
-        }
-      } catch (error) {
-        setChatError(
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch transcript. Please try again."
-        );
-      } finally {
-        setIsChatLoading(false);
-      }
+    if (transcriptMatchesLanguage) {
+      return;
+    }
+
+    setIsChatLoading(true);
+    try {
+      await ensureTranscriptForChat();
+    } catch {
+      // Error already surfaced via setChatError
+    } finally {
+      setIsChatLoading(false);
     }
   };
 
@@ -607,34 +432,16 @@ export default function Widget() {
       return;
     }
 
-    const videoId = extractCurrentVideoId();
-    if (!videoId) {
-      setChatError("Unable to detect the current video.");
-      return;
-    }
-
-    // Ensure we have transcript
     let transcript = transcriptSegments;
     if (!transcriptMatchesLanguage) {
       setIsChatLoading(true);
       try {
-        transcript = await fetchTranscriptForVideo(language);
-        setTranscriptSegments(transcript);
-        setTranscriptLocale(language);
-        if (!transcript.length) {
-          setChatError("Transcript was empty for this video.");
-          setIsChatLoading(false);
-          return;
-        }
-      } catch (error) {
-        setChatError(
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch transcript. Please try again."
-        );
+        transcript = await ensureTranscriptForChat();
+      } catch {
         setIsChatLoading(false);
         return;
       } finally {
+        // ensure the spinner stops even if ensureTranscriptForChat resolves
         setIsChatLoading(false);
       }
     }
