@@ -67,6 +67,7 @@ import { fetchTranscriptForVideo } from "./transcriptService";
 import { generateSummary, buildSummaryCacheKey } from "./summaryService";
 import { generateChatResponse } from "./chatService";
 import { getStoredApiKey, saveApiKey, removeApiKey } from "./apiKeyService";
+import { validateApiKey } from "./apiValidationService";
 
 const PREFERENCES_STORAGE_KEY = "yt-summary-preferences";
 
@@ -245,6 +246,10 @@ export default function Widget() {
   const [apiKey, setApiKey] = useState("");
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [apiKeyNotice, setApiKeyNotice] = useState<string | null>(null);
+  const [apiKeyValidationError, setApiKeyValidationError] = useState<
+    string | null
+  >(null);
+  const [isValidatingApiKey, setIsValidatingApiKey] = useState(false);
   const [activeView, setActiveView] = useState<ActiveView>(null);
   const [summaryCache, setSummaryCache] = useState<Record<string, string>>({});
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -253,6 +258,9 @@ export default function Widget() {
   const [chatError, setChatError] = useState<string | null>(null);
   const [isMinimized, setIsMinimized] = useState(false);
   const [isEditingApiKey, setIsEditingApiKey] = useState(false);
+  const [hoveredHeaderButton, setHoveredHeaderButton] = useState<
+    "edit" | "minimize" | null
+  >(null);
   const chatMessagesEndRef = useRef<HTMLDivElement>(null);
   const chatMessagesContainerRef = useRef<HTMLDivElement>(null);
   const currentVideoIdRef = useRef<string | undefined>(undefined);
@@ -367,18 +375,39 @@ export default function Widget() {
   const handleApiKeyInputChange = (value: string) => {
     setApiKeyInput(value);
     setApiKeyNotice(null);
+    setApiKeyValidationError(null);
   };
 
-  const handleSaveApiKey = () => {
+  const handleSaveApiKey = async () => {
+    if (isValidatingApiKey) {
+      return;
+    }
     const trimmed = apiKeyInput.trim();
     if (!trimmed) {
       setApiKeyNotice("Please paste a Google AI Studio API key to continue.");
       return;
     }
-    saveApiKey(trimmed);
-    setApiKey(trimmed);
-    setApiKeyNotice("API key saved. You can update it anytime.");
-    setIsEditingApiKey(false);
+    setApiKeyNotice("Testing API key…");
+    setApiKeyValidationError(null);
+    setIsValidatingApiKey(true);
+    try {
+      await validateApiKey(trimmed);
+      saveApiKey(trimmed);
+      setApiKey(trimmed);
+      setApiKeyNotice(
+        "API key validated and saved. You can update it anytime."
+      );
+      setIsEditingApiKey(false);
+    } catch (error) {
+      setApiKeyNotice(null);
+      setApiKeyValidationError(
+        error instanceof Error
+          ? error.message
+          : "Failed to validate API key. Please try again."
+      );
+    } finally {
+      setIsValidatingApiKey(false);
+    }
   };
 
   const handleResetApiKey = () => {
@@ -396,6 +425,8 @@ export default function Widget() {
     setChatInput("");
     setChatError(null);
     setIsEditingApiKey(false);
+    setApiKeyValidationError(null);
+    setIsValidatingApiKey(false);
   };
 
   const handleMinimize = () => {
@@ -858,11 +889,23 @@ export default function Widget() {
 
   const renderHeader = () => {
     const isEditButtonDisabled = !apiKey && !isEditingApiKey;
-    const editButtonStyle =
+    const editButtonBaseStyle =
       isEditingApiKey || showApiKeyGate
         ? headerIconButtonStyle
         : headerIconButtonGhostStyle;
     const editIcon = isEditingApiKey ? "✕" : "🔑";
+    const isEditHovered = hoveredHeaderButton === "edit";
+    const editButtonStyle = {
+      ...editButtonBaseStyle,
+      opacity: isEditHovered ? 1 : 0.7,
+      transform: isEditHovered ? "scale(1.05)" : "scale(1)",
+    };
+    const isMinimizeHovered = hoveredHeaderButton === "minimize";
+    const minimizeButtonStyle = {
+      ...headerIconButtonStyle,
+      opacity: isMinimizeHovered ? 1 : 0.7,
+      transform: isMinimizeHovered ? "scale(1.05)" : "scale(1)",
+    };
 
     return (
       <div style={headerContainerStyle}>
@@ -874,15 +917,19 @@ export default function Widget() {
           aria-pressed={isEditingApiKey}
           aria-label={isEditingApiKey ? "Close API key editor" : "Edit API key"}
           title={isEditingApiKey ? "Close API key editor" : "Edit API key"}
+          onMouseEnter={() => setHoveredHeaderButton("edit")}
+          onMouseLeave={() => setHoveredHeaderButton(null)}
         >
           <span aria-hidden="true">{editIcon}</span>
         </button>
         <button
           type="button"
-          style={headerIconButtonStyle}
+          style={minimizeButtonStyle}
           onClick={handleMinimize}
           aria-label="Minimize widget"
           title="Minimize widget"
+          onMouseEnter={() => setHoveredHeaderButton("minimize")}
+          onMouseLeave={() => setHoveredHeaderButton(null)}
         >
           <span aria-hidden="true">−</span>
         </button>
@@ -905,10 +952,15 @@ export default function Widget() {
         onChange={(event) => {
           handleApiKeyInputChange(event.target.value);
         }}
+        disabled={isValidatingApiKey}
       />
       <div style={gateActionsStyle}>
-        <button style={primaryButtonStyle} onClick={handleSaveApiKey}>
-          Save API key
+        <button
+          style={primaryButtonStyle}
+          onClick={handleSaveApiKey}
+          disabled={isValidatingApiKey}
+        >
+          {isValidatingApiKey ? "Testing…" : "Save API key"}
         </button>
         <a
           href={GOOGLE_API_KEY_URL}
@@ -929,6 +981,9 @@ export default function Widget() {
         >
           {apiKeyNotice}
         </div>
+      )}
+      {apiKeyValidationError && (
+        <div style={transcriptErrorStyle}>{apiKeyValidationError}</div>
       )}
       <div style={helperTextStyle}>
         Stored securely in this browser only (localStorage).

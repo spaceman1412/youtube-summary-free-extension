@@ -140,23 +140,22 @@ export const tabButtonActiveStyle: CSSProperties = {
 export const headerContainerStyle: CSSProperties = {
   display: "flex",
   justifyContent: "flex-end",
-  gap: "6px",
+  gap: "4px",
 };
 
 const headerIconButtonBase: CSSProperties = {
-  width: "30px",
-  height: "30px",
-  borderRadius: "999px",
-  border: "1px solid rgba(255,255,255,0.12)",
-  background: "rgba(255,255,255,0.08)",
+  width: "22px",
+  height: "22px",
+  border: "none",
+  background: "transparent",
   color: "#f5f5f5",
   cursor: "pointer",
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
-  fontSize: "13px",
-  transition:
-    "background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease",
+  fontSize: "11px",
+  padding: 0,
+  transition: "opacity 0.15s ease, color 0.15s ease",
 };
 
 export const headerIconButtonStyle: CSSProperties = {
@@ -165,7 +164,6 @@ export const headerIconButtonStyle: CSSProperties = {
 
 export const headerIconButtonGhostStyle: CSSProperties = {
   ...headerIconButtonBase,
-  background: "transparent",
   color: "rgba(255,255,255,0.85)",
 };
 
