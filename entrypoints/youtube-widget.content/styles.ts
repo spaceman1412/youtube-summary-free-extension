@@ -17,6 +17,7 @@ export const cardStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
   gap: "8px",
+  position: "relative",
 };
 
 /**
@@ -268,6 +269,44 @@ export const iconButtonStyle: CSSProperties = {
   justifyContent: "center",
   fontSize: "12px",
   cursor: "pointer",
+};
+
+export const minimizeButtonStyle: CSSProperties = {
+  position: "absolute",
+  top: "8px",
+  right: "8px",
+  borderRadius: "999px",
+  border: "1px solid rgba(255,255,255,0.15)",
+  background: "rgba(255,255,255,0.08)",
+  color: "#f5f5f5",
+  width: "28px",
+  height: "28px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: "12px",
+  cursor: "pointer",
+  transition: "background 0.2s ease, border-color 0.2s ease",
+};
+
+export const floatingLauncherStyle: CSSProperties = {
+  position: "fixed",
+  bottom: "24px",
+  right: "24px",
+  borderRadius: "999px",
+  border: "1px solid rgba(255,255,255,0.2)",
+  background: "rgba(10,10,10,0.9)",
+  color: "#f5f5f5",
+  padding: "10px 18px",
+  fontSize: "12px",
+  fontWeight: 600,
+  boxShadow: "0 12px 30px rgba(0,0,0,0.45)",
+  cursor: "pointer",
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "6px",
+  zIndex: 2147483647,
+  transition: "transform 0.2s ease, background 0.2s ease",
 };
 
 /**

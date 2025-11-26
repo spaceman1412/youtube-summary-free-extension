@@ -52,6 +52,8 @@ import {
   customSelectOptionStyle,
   customSelectOptionLabelStyle,
   customSelectOptionDescriptionStyle,
+  minimizeButtonStyle,
+  floatingLauncherStyle,
 } from "./styles";
 import {
   formatTimestamp,
@@ -242,6 +244,7 @@ export default function Widget() {
   const [chatInput, setChatInput] = useState("");
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
+  const [isMinimized, setIsMinimized] = useState(false);
   const chatMessagesEndRef = useRef<HTMLDivElement>(null);
   const chatMessagesContainerRef = useRef<HTMLDivElement>(null);
   const currentVideoIdRef = useRef<string | undefined>(undefined);
@@ -332,6 +335,14 @@ export default function Widget() {
     setChatMessages([]);
     setChatInput("");
     setChatError(null);
+  };
+
+  const handleMinimize = () => {
+    setIsMinimized(true);
+  };
+
+  const handleRestore = () => {
+    setIsMinimized(false);
   };
 
   const transcriptMatchesLanguage =
@@ -769,9 +780,30 @@ export default function Widget() {
     return renderPlaceholderPanel();
   };
 
+  if (isMinimized) {
+    return (
+      <button
+        type="button"
+        style={floatingLauncherStyle}
+        onClick={handleRestore}
+        aria-label="Open YouTube Summary widget"
+      >
+        ✨ Summary
+      </button>
+    );
+  }
+
   if (!apiKey) {
     return (
       <div style={cardStyle}>
+        <button
+          type="button"
+          style={minimizeButtonStyle}
+          onClick={handleMinimize}
+          aria-label="Minimize widget"
+        >
+          -
+        </button>
         <div style={sectionStyle}>
           <div style={onboardingTitleStyle}>Connect Google AI Studio</div>
           <div style={onboardingDescriptionStyle}>
@@ -821,6 +853,14 @@ export default function Widget() {
 
   return (
     <div style={cardStyle}>
+      <button
+        type="button"
+        style={minimizeButtonStyle}
+        onClick={handleMinimize}
+        aria-label="Minimize widget"
+      >
+        -
+      </button>
       {/* Main content section */}
       <div style={sectionStyle}>
         {/* Dropdown selectors for configuration */}
