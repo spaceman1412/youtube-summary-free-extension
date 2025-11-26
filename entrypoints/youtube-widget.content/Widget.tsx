@@ -19,10 +19,6 @@ import {
   inputLabelStyle,
   selectStyle,
   actionRowStyle,
-  headerStyle,
-  brandStyle,
-  brandIconStyle,
-  headerActionsStyle,
   transcriptSectionStyle,
   summarySectionStyle,
   summaryTextStyle,
@@ -32,7 +28,6 @@ import {
   transcriptTimestampHoverStyle,
   transcriptMessageStyle,
   transcriptErrorStyle,
-  iconButtonStyle,
   secondaryButtonStyle,
   primaryButtonStyle,
   onboardingTitleStyle,
@@ -48,7 +43,6 @@ import {
   chatInputContainerStyle,
   chatInputStyle,
   chatSendButtonStyle,
-  modelDescriptionStyle,
   customSelectContainerStyle,
   customSelectButtonStyle,
   customSelectDropdownStyle,
@@ -640,11 +634,6 @@ export default function Widget() {
             ))}
         </div>
       )}
-      {!isSummaryLoading && !summaryError && !summary && (
-        <div style={transcriptMessageStyle}>
-          Click Summary to generate Google AI insights for this video.
-        </div>
-      )}
     </div>
   );
 
@@ -656,13 +645,6 @@ export default function Widget() {
       {!isTranscriptLoading && transcriptError && (
         <div style={transcriptErrorStyle}>{transcriptError}</div>
       )}
-      {!isTranscriptLoading &&
-        !transcriptError &&
-        transcriptSegments.length === 0 && (
-          <div style={transcriptMessageStyle}>
-            Click Transcript to load the captions for this video.
-          </div>
-        )}
       {!isTranscriptLoading && !transcriptError && (
         <div style={transcriptListStyle}>
           {transcriptSegments.map((segment, index) => (
@@ -701,13 +683,7 @@ export default function Widget() {
     </div>
   );
 
-  const renderPlaceholderPanel = () => (
-    <div style={summarySectionStyle}>
-      <div style={transcriptMessageStyle}>
-        Run Summary or Transcript to preview insights here.
-      </div>
-    </div>
-  );
+  const renderPlaceholderPanel = () => null;
 
   const renderChatPanel = () => (
     <div style={chatSectionStyle}>
@@ -724,12 +700,6 @@ export default function Widget() {
           }
         }}
       >
-        {chatMessages.length === 0 && !isChatLoading && !chatError && (
-          <div style={transcriptMessageStyle}>
-            Ask questions about this video. The transcript will be used as
-            context.
-          </div>
-        )}
         {chatMessages.map((message, index) => (
           <div
             key={index}
@@ -782,23 +752,9 @@ export default function Widget() {
     return renderPlaceholderPanel();
   };
 
-  const renderHeader = () => (
-    <div style={headerStyle}>
-      <div style={brandStyle}>
-        <div style={brandIconStyle}>◎</div>
-        <span>Copilot</span>
-      </div>
-      <div style={headerActionsStyle}>
-        <button style={iconButtonStyle}>⤴︎</button>
-        <button style={iconButtonStyle}>⟳</button>
-      </div>
-    </div>
-  );
-
   if (!apiKey) {
     return (
       <div style={cardStyle}>
-        {renderHeader()}
         <div style={sectionStyle}>
           <div style={onboardingTitleStyle}>Connect Google AI Studio</div>
           <div style={onboardingDescriptionStyle}>
@@ -848,33 +804,8 @@ export default function Widget() {
 
   return (
     <div style={cardStyle}>
-      {renderHeader()}
-
       {/* Main content section */}
       <div style={sectionStyle}>
-        <div
-          style={{
-            ...helperTextStyle,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: "8px",
-            textAlign: "left",
-          }}
-        >
-          <span>Connected to Google AI Studio (stored locally).</span>
-          <button
-            style={{
-              ...secondaryButtonStyle,
-              flex: "unset",
-              padding: "6px 10px",
-              fontSize: "10px",
-            }}
-            onClick={handleResetApiKey}
-          >
-            Update key
-          </button>
-        </div>
         {/* Dropdown selectors for configuration */}
         <div style={pickerRowStyle}>
           {renderSelect("Language", language, setLanguage, languages)}

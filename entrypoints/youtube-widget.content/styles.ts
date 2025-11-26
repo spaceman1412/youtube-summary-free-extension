@@ -9,14 +9,14 @@ import type { CSSProperties } from "react";
  */
 export const cardStyle: CSSProperties = {
   borderRadius: "16px",
-  padding: "16px",
+  padding: "12px",
   background: "#050505",
   color: "#f5f5f5",
   boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
   border: "1px solid rgba(255,255,255,0.08)",
   display: "flex",
   flexDirection: "column",
-  gap: "8px",
+  gap: "6px",
 };
 
 /**
@@ -26,10 +26,10 @@ export const sectionStyle: CSSProperties = {
   background: "rgba(255,255,255,0.02)",
   borderRadius: "12px",
   border: "1px solid rgba(255,255,255,0.08)",
-  padding: "12px",
+  padding: "8px",
   display: "flex",
   flexDirection: "column",
-  gap: "6px",
+  gap: "4px",
   boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
 };
 
@@ -38,7 +38,7 @@ export const sectionStyle: CSSProperties = {
  */
 export const pickerRowStyle: CSSProperties = {
   display: "flex",
-  gap: "4px",
+  gap: "3px",
   flexWrap: "wrap",
   justifyContent: "center",
 };
@@ -49,8 +49,8 @@ export const pickerRowStyle: CSSProperties = {
 export const inputLabelStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: "2px",
-  fontSize: "9px",
+  gap: "1px",
+  fontSize: "8px",
   fontWeight: "600",
   textTransform: "uppercase",
   letterSpacing: "0.1em",
@@ -61,10 +61,10 @@ export const inputLabelStyle: CSSProperties = {
  * Dropdown select input style - dark theme with rounded corners
  */
 export const selectStyle: CSSProperties = {
-  minWidth: "100px",
+  minWidth: "85px",
   borderRadius: "10px",
   border: "none",
-  padding: "10px 12px",
+  padding: "8px 10px",
   background: "rgba(255,255,255,0.08)",
   color: "#f5f5f5",
   fontWeight: "500",
@@ -79,7 +79,7 @@ export const selectStyle: CSSProperties = {
  */
 export const actionRowStyle: CSSProperties = {
   display: "flex",
-  gap: "6px",
+  gap: "4px",
   flexWrap: "wrap",
   justifyContent: "center",
 };
@@ -133,20 +133,20 @@ export const headerActionsStyle: CSSProperties = {
 
 export const transcriptSectionStyle: CSSProperties = {
   ...sectionStyle,
-  marginTop: "8px",
-  maxHeight: "220px",
+  marginTop: "6px",
+  maxHeight: "200px",
   overflowY: "auto",
-  gap: "10px",
+  gap: "8px",
 };
 
 export const summarySectionStyle: CSSProperties = {
   ...sectionStyle,
-  marginTop: "8px",
-  gap: "10px",
+  marginTop: "6px",
+  gap: "8px",
 };
 
 export const summaryTextStyle: CSSProperties = {
-  fontSize: "13px",
+  fontSize: "12px",
   lineHeight: 1.5,
   color: "rgba(255,255,255,0.85)",
   textAlign: "left",
@@ -161,14 +161,14 @@ export const transcriptListStyle: CSSProperties = {
 export const transcriptItemStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  padding: "10px",
+  padding: "8px",
   borderRadius: "10px",
   background: "rgba(255,255,255,0.03)",
   border: "1px solid rgba(255,255,255,0.05)",
 };
 
 export const transcriptTimestampStyle: CSSProperties = {
-  fontSize: "10px",
+  fontSize: "9px",
   color: "rgba(255,255,255,0.6)",
   letterSpacing: "0.08em",
   textTransform: "uppercase",
@@ -184,7 +184,7 @@ export const transcriptTimestampHoverStyle: CSSProperties = {
 };
 
 export const transcriptMessageStyle: CSSProperties = {
-  fontSize: "12px",
+  fontSize: "11px",
   color: "rgba(255,255,255,0.75)",
   textAlign: "center",
 };
@@ -216,18 +216,18 @@ export const iconButtonStyle: CSSProperties = {
  */
 const buttonBase: CSSProperties = {
   flex: 1,
-  minWidth: "85px",
+  minWidth: "75px",
   borderRadius: "999px",
-  padding: "10px 14px",
+  padding: "8px 12px",
   border: "1px solid rgba(255,255,255,0.2)",
   fontWeight: "600",
-  fontSize: "11px",
+  fontSize: "10px",
   cursor: "pointer",
   transition: "background 0.3s ease, color 0.3s ease",
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
-  gap: "4px",
+  gap: "3px",
 };
 
 /**
@@ -290,8 +290,8 @@ export const helperTextStyle: CSSProperties = {
 
 export const chatSectionStyle: CSSProperties = {
   ...sectionStyle,
-  marginTop: "8px",
-  maxHeight: "320px",
+  marginTop: "6px",
+  maxHeight: "280px",
   gap: "0",
   display: "flex",
   flexDirection: "column",
@@ -381,11 +381,11 @@ export const customSelectContainerStyle: CSSProperties = {
 };
 
 export const customSelectButtonStyle: CSSProperties = {
-  minWidth: "100px",
+  minWidth: "85px",
   width: "100%",
   borderRadius: "10px",
   border: "none",
-  padding: "10px 12px",
+  padding: "8px 10px",
   background: "rgba(255,255,255,0.08)",
   color: "#f5f5f5",
   fontWeight: "500",
