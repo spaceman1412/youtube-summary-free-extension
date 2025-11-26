@@ -100,3 +100,84 @@ export const seekToTimestamp = (offset: number): void => {
     console.error("Error seeking to timestamp:", error);
   }
 };
+
+/**
+ * Parses a timestamp string (e.g., "5:23", "12:45", "1:23:45") and converts it to seconds.
+ * Supports formats: mm:ss, m:ss, hh:mm:ss, h:mm:ss
+ */
+export const parseTimestampToSeconds = (timestamp: string): number | null => {
+  const trimmed = timestamp.trim();
+  if (!trimmed) return null;
+
+  // Match patterns: h:mm:ss, mm:ss, m:ss
+  // Pattern breakdown:
+  // - Optional hours: (\d{1,2}):?
+  // - Minutes: (\d{1,2})
+  // - Seconds: (\d{2})
+  const patterns = [
+    /^(\d{1,2}):(\d{1,2}):(\d{2})$/, // h:mm:ss or hh:mm:ss
+    /^(\d{1,2}):(\d{2})$/, // m:ss or mm:ss
+  ];
+
+  for (const pattern of patterns) {
+    const match = trimmed.match(pattern);
+    if (match) {
+      if (match.length === 4) {
+        // h:mm:ss format
+        const hours = parseInt(match[1], 10);
+        const minutes = parseInt(match[2], 10);
+        const seconds = parseInt(match[3], 10);
+        if (
+          hours >= 0 &&
+          minutes >= 0 &&
+          minutes < 60 &&
+          seconds >= 0 &&
+          seconds < 60
+        ) {
+          return hours * 3600 + minutes * 60 + seconds;
+        }
+      } else if (match.length === 3) {
+        // m:ss or mm:ss format
+        const minutes = parseInt(match[1], 10);
+        const seconds = parseInt(match[2], 10);
+        if (minutes >= 0 && seconds >= 0 && seconds < 60) {
+          return minutes * 60 + seconds;
+        }
+      }
+    }
+  }
+
+  return null;
+};
+
+/**
+ * Finds all timestamp patterns in text and returns their positions and converted offsets.
+ * Returns an array of objects with timestamp string, offset in seconds, and index in text.
+ */
+export const parseTimestampsFromText = (
+  text: string
+): Array<{ timestamp: string; offset: number; index: number }> => {
+  const results: Array<{ timestamp: string; offset: number; index: number }> =
+    [];
+
+  // Regex to match timestamps in various formats
+  // Matches: h:mm:ss, hh:mm:ss, m:ss, mm:ss
+  // Lookbehind and lookahead to ensure we're not matching part of a larger number
+  const timestampRegex =
+    /\b(\d{1,2}:\d{1,2}(?::\d{2})?)\b/g;
+
+  let match;
+  while ((match = timestampRegex.exec(text)) !== null) {
+    const timestamp = match[1];
+    const offset = parseTimestampToSeconds(timestamp);
+    if (offset !== null) {
+      results.push({
+        timestamp,
+        offset,
+        index: match.index,
+      });
+    }
+  }
+
+  return results;
+};

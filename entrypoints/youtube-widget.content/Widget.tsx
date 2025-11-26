@@ -48,6 +48,7 @@ import {
   formatTimestamp,
   extractCurrentVideoId,
   seekToTimestamp,
+  parseTimestampsFromText,
 } from "./utils";
 import { fetchTranscriptForVideo } from "./transcriptService";
 import { generateSummary, buildSummaryCacheKey } from "./summaryService";
@@ -416,6 +417,78 @@ export default function Widget() {
     }
   };
 
+  /**
+   * Renders a line of text with clickable timestamps
+   */
+  const renderTextWithTimestamps = (text: string, lineIndex: number) => {
+    const timestamps = parseTimestampsFromText(text);
+
+    if (timestamps.length === 0) {
+      // No timestamps found, return plain text
+      return <span>{text}</span>;
+    }
+
+    // Sort timestamps by index to process in order
+    const sortedTimestamps = [...timestamps].sort((a, b) => a.index - b.index);
+
+    const elements = [];
+    let lastIndex = 0;
+
+    sortedTimestamps.forEach((ts, tsIndex) => {
+      // Add text before timestamp
+      if (ts.index > lastIndex) {
+        elements.push(
+          <span key={`text-${lineIndex}-${tsIndex}`}>
+            {text.substring(lastIndex, ts.index)}
+          </span>
+        );
+      }
+
+      // Add clickable timestamp
+      const timestampOffset = ts.offset;
+      elements.push(
+        <span
+          key={`timestamp-${lineIndex}-${tsIndex}`}
+          style={
+            hoveredTimestamp === timestampOffset
+              ? transcriptTimestampHoverStyle
+              : transcriptTimestampStyle
+          }
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            seekToTimestamp(timestampOffset);
+          }}
+          onMouseEnter={() => setHoveredTimestamp(timestampOffset)}
+          onMouseLeave={() => setHoveredTimestamp(null)}
+          role="button"
+          tabIndex={0}
+          aria-label={`Seek to ${formatTimestamp(timestampOffset)}`}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              e.stopPropagation();
+              seekToTimestamp(timestampOffset);
+            }
+          }}
+        >
+          {ts.timestamp}
+        </span>
+      );
+
+      lastIndex = ts.index + ts.timestamp.length;
+    });
+
+    // Add remaining text after last timestamp
+    if (lastIndex < text.length) {
+      elements.push(
+        <span key={`text-${lineIndex}-end`}>{text.substring(lastIndex)}</span>
+      );
+    }
+
+    return <>{elements}</>;
+  };
+
   const renderSummaryPanel = () => (
     <div style={summarySectionStyle}>
       {isSummaryLoading && (
@@ -438,7 +511,7 @@ export default function Widget() {
                   whiteSpace: "pre-wrap",
                 }}
               >
-                {line}
+                {renderTextWithTimestamps(line, index)}
               </p>
             ))}
         </div>

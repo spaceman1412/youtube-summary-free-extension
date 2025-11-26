@@ -40,6 +40,7 @@ export function buildSummaryPrompt(
     `You are summarizing a YouTube video transcript in ${languageLabel}.`,
     lengthInstruction,
     "Focus on the main narrative arc, important data points, and any explicit recommendations.",
+    "Include timestamps at key points in the summary using the format mm:ss or hh:mm:ss (e.g., '5:23', '12:45', '1:23:45'). Place timestamps inline where they are most relevant to help readers navigate to specific moments in the video.",
     "Transcript:",
     `"""${transcriptText}"""`,
   ].join("\n\n");
