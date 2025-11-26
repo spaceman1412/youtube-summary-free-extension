@@ -17,6 +17,8 @@ import {
   sectionStyle,
   pickerRowStyle,
   inputLabelStyle,
+  smallPickerLabelStyle,
+  largePickerLabelStyle,
   selectStyle,
   actionRowStyle,
   tabButtonStyle,
@@ -71,7 +73,7 @@ const renderSelect = (
   onChange: (next: string) => void,
   options: { label: string; value: string }[]
 ) => (
-  <label style={inputLabelStyle}>
+  <label style={smallPickerLabelStyle}>
     {label}
     <select
       style={selectStyle}
@@ -137,7 +139,7 @@ const CustomModelSelect = ({
   };
 
   return (
-    <div style={inputLabelStyle}>
+    <div style={largePickerLabelStyle}>
       <span>{label}</span>
       <div style={customSelectContainerStyle} ref={containerRef}>
         <button

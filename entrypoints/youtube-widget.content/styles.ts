@@ -60,6 +60,22 @@ export const inputLabelStyle: CSSProperties = {
 };
 
 /**
+ * Label style for small pickers (Language, Length) - narrower width
+ */
+export const smallPickerLabelStyle: CSSProperties = {
+  ...inputLabelStyle,
+  flex: 0.7,
+};
+
+/**
+ * Label style for large picker (Model) - wider width
+ */
+export const largePickerLabelStyle: CSSProperties = {
+  ...inputLabelStyle,
+  flex: 1.6,
+};
+
+/**
  * Dropdown select input style - dark theme with rounded corners
  */
 export const selectStyle: CSSProperties = {
