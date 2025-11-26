@@ -8,15 +8,15 @@ import type { CSSProperties } from "react";
  * Main card container style - dark theme with rounded corners and shadow
  */
 export const cardStyle: CSSProperties = {
-  borderRadius: "16px",
-  padding: "12px",
-  background: "#050505",
+  borderRadius: "14px",
+  padding: "10px",
+  background: "#0a0a0a",
   color: "#f5f5f5",
-  boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
-  border: "1px solid rgba(255,255,255,0.08)",
+  boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
+  border: "1px solid rgba(255,255,255,0.06)",
   display: "flex",
   flexDirection: "column",
-  gap: "6px",
+  gap: "8px",
 };
 
 /**
@@ -24,13 +24,12 @@ export const cardStyle: CSSProperties = {
  */
 export const sectionStyle: CSSProperties = {
   background: "rgba(255,255,255,0.02)",
-  borderRadius: "12px",
-  border: "1px solid rgba(255,255,255,0.08)",
-  padding: "8px",
+  borderRadius: "10px",
+  border: "1px solid rgba(255,255,255,0.06)",
+  padding: "10px",
   display: "flex",
   flexDirection: "column",
-  gap: "4px",
-  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
+  gap: "10px",
 };
 
 /**
@@ -38,9 +37,10 @@ export const sectionStyle: CSSProperties = {
  */
 export const pickerRowStyle: CSSProperties = {
   display: "flex",
-  gap: "3px",
-  flexWrap: "wrap",
-  justifyContent: "center",
+  gap: "6px",
+  flexWrap: "nowrap",
+  justifyContent: "space-between",
+  alignItems: "flex-start",
 };
 
 /**
@@ -49,39 +49,72 @@ export const pickerRowStyle: CSSProperties = {
 export const inputLabelStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: "1px",
-  fontSize: "8px",
+  gap: "3px",
+  fontSize: "9px",
   fontWeight: "600",
   textTransform: "uppercase",
-  letterSpacing: "0.1em",
-  color: "rgba(255,255,255,0.7)",
+  letterSpacing: "0.08em",
+  color: "rgba(255,255,255,0.5)",
+  flex: 1,
+  minWidth: 0,
 };
 
 /**
  * Dropdown select input style - dark theme with rounded corners
  */
 export const selectStyle: CSSProperties = {
-  minWidth: "85px",
-  borderRadius: "10px",
-  border: "none",
-  padding: "8px 10px",
-  background: "rgba(255,255,255,0.08)",
+  width: "100%",
+  borderRadius: "8px",
+  border: "1px solid rgba(255,255,255,0.06)",
+  padding: "6px 8px",
+  background: "rgba(255,255,255,0.04)",
   color: "#f5f5f5",
   fontWeight: "500",
-  fontSize: "12px",
+  fontSize: "11px",
   appearance: "none",
   outline: "none",
-  transition: "background 0.2s ease",
+  transition: "background 0.2s ease, border-color 0.2s ease",
+  cursor: "pointer",
 };
 
 /**
- * Row container for action buttons (Summary, Transcript, Chat)
+ * Row container for action buttons (Summary, Transcript, Chat) - tab strip style
  */
 export const actionRowStyle: CSSProperties = {
   display: "flex",
-  gap: "4px",
-  flexWrap: "wrap",
+  gap: "2px",
+  background: "rgba(255,255,255,0.03)",
+  borderRadius: "10px",
+  padding: "3px",
+};
+
+/**
+ * Tab button base style
+ */
+export const tabButtonStyle: CSSProperties = {
+  flex: 1,
+  borderRadius: "8px",
+  padding: "8px 10px",
+  border: "none",
+  background: "transparent",
+  color: "rgba(255,255,255,0.6)",
+  fontWeight: "500",
+  fontSize: "11px",
+  cursor: "pointer",
+  transition: "all 0.2s ease",
+  display: "flex",
+  alignItems: "center",
   justifyContent: "center",
+  gap: "4px",
+};
+
+/**
+ * Active tab button style
+ */
+export const tabButtonActiveStyle: CSSProperties = {
+  ...tabButtonStyle,
+  background: "rgba(255,255,255,0.1)",
+  color: "#f5f5f5",
 };
 
 /**
@@ -132,66 +165,76 @@ export const headerActionsStyle: CSSProperties = {
 };
 
 export const transcriptSectionStyle: CSSProperties = {
-  ...sectionStyle,
-  marginTop: "6px",
-  maxHeight: "200px",
+  background: "transparent",
+  borderRadius: "8px",
+  border: "none",
+  padding: "0",
+  maxHeight: "220px",
   overflowY: "auto",
-  gap: "8px",
 };
 
 export const summarySectionStyle: CSSProperties = {
-  ...sectionStyle,
-  marginTop: "6px",
-  gap: "8px",
+  background: "transparent",
+  borderRadius: "8px",
+  border: "none",
+  padding: "0",
+  maxHeight: "280px",
+  overflowY: "auto",
 };
 
 export const summaryTextStyle: CSSProperties = {
   fontSize: "12px",
-  lineHeight: 1.5,
-  color: "rgba(255,255,255,0.85)",
+  lineHeight: 1.6,
+  color: "rgba(255,255,255,0.8)",
   textAlign: "left",
+  padding: "8px 4px",
 };
 
 export const transcriptListStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: "8px",
+  gap: "2px",
+  padding: "4px 0",
 };
 
 export const transcriptItemStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  padding: "8px",
-  borderRadius: "10px",
-  background: "rgba(255,255,255,0.03)",
-  border: "1px solid rgba(255,255,255,0.05)",
+  padding: "6px 8px",
+  borderRadius: "6px",
+  background: "transparent",
+  border: "none",
+  transition: "background 0.15s ease",
 };
 
 export const transcriptTimestampStyle: CSSProperties = {
-  fontSize: "9px",
-  color: "rgba(255,255,255,0.6)",
-  letterSpacing: "0.08em",
-  textTransform: "uppercase",
-  marginBottom: "4px",
+  fontSize: "10px",
+  color: "rgba(255,255,255,0.4)",
+  fontFamily: "monospace",
+  letterSpacing: "0.02em",
+  marginBottom: "2px",
   cursor: "pointer",
-  transition: "color 0.2s ease, opacity 0.2s ease",
+  transition: "color 0.15s ease",
   userSelect: "none",
 };
 
 export const transcriptTimestampHoverStyle: CSSProperties = {
   ...transcriptTimestampStyle,
-  color: "rgba(255,255,255,0.9)",
+  color: "#f5f5f5",
 };
 
 export const transcriptMessageStyle: CSSProperties = {
   fontSize: "11px",
-  color: "rgba(255,255,255,0.75)",
+  color: "rgba(255,255,255,0.5)",
   textAlign: "center",
+  padding: "16px 8px",
 };
 
 export const transcriptErrorStyle: CSSProperties = {
-  ...transcriptMessageStyle,
-  color: "#ff8a8a",
+  fontSize: "11px",
+  color: "#ff6b6b",
+  textAlign: "center",
+  padding: "16px 8px",
 };
 
 /**
@@ -216,18 +259,17 @@ export const iconButtonStyle: CSSProperties = {
  */
 const buttonBase: CSSProperties = {
   flex: 1,
-  minWidth: "75px",
-  borderRadius: "999px",
-  padding: "8px 12px",
-  border: "1px solid rgba(255,255,255,0.2)",
-  fontWeight: "600",
-  fontSize: "10px",
+  borderRadius: "8px",
+  padding: "10px 14px",
+  border: "none",
+  fontWeight: "500",
+  fontSize: "11px",
   cursor: "pointer",
-  transition: "background 0.3s ease, color 0.3s ease",
+  transition: "background 0.15s ease, opacity 0.15s ease",
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
-  gap: "3px",
+  gap: "4px",
 };
 
 /**
@@ -235,45 +277,46 @@ const buttonBase: CSSProperties = {
  */
 export const secondaryButtonStyle: CSSProperties = {
   ...buttonBase,
-  background: "transparent",
+  background: "rgba(255,255,255,0.08)",
   color: "#f5f5f5",
 };
 
 export const primaryButtonStyle: CSSProperties = {
   ...buttonBase,
   background: "#f5f5f5",
-  color: "#050505",
-  borderColor: "transparent",
+  color: "#0a0a0a",
 };
 
 export const onboardingTitleStyle: CSSProperties = {
-  fontSize: "16px",
+  fontSize: "14px",
   fontWeight: 600,
   textAlign: "center",
+  color: "#f5f5f5",
 };
 
 export const onboardingDescriptionStyle: CSSProperties = {
-  fontSize: "12px",
-  color: "rgba(255,255,255,0.75)",
+  fontSize: "11px",
+  color: "rgba(255,255,255,0.6)",
   textAlign: "center",
   lineHeight: 1.5,
 };
 
 export const apiKeyInputStyle: CSSProperties = {
   width: "100%",
-  borderRadius: "10px",
-  border: "1px solid rgba(255,255,255,0.15)",
-  padding: "12px",
-  background: "rgba(255,255,255,0.05)",
+  borderRadius: "8px",
+  border: "1px solid rgba(255,255,255,0.1)",
+  padding: "10px 12px",
+  background: "rgba(255,255,255,0.04)",
   color: "#f5f5f5",
   fontSize: "12px",
   outline: "none",
+  transition: "border-color 0.15s ease",
 };
 
 export const gateActionsStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: "8px",
+  gap: "6px",
 };
 
 export const linkButtonStyle: CSSProperties = {
@@ -283,16 +326,17 @@ export const linkButtonStyle: CSSProperties = {
 };
 
 export const helperTextStyle: CSSProperties = {
-  fontSize: "10px",
-  color: "rgba(255,255,255,0.6)",
+  fontSize: "9px",
+  color: "rgba(255,255,255,0.4)",
   textAlign: "center",
 };
 
 export const chatSectionStyle: CSSProperties = {
-  ...sectionStyle,
-  marginTop: "6px",
-  maxHeight: "280px",
-  gap: "0",
+  background: "transparent",
+  borderRadius: "8px",
+  border: "none",
+  padding: "0",
+  maxHeight: "300px",
   display: "flex",
   flexDirection: "column",
   overflow: "hidden",
@@ -301,70 +345,73 @@ export const chatSectionStyle: CSSProperties = {
 export const chatMessagesStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: "8px",
+  gap: "6px",
   flex: 1,
-  minHeight: "100px",
-  maxHeight: "260px",
+  minHeight: "80px",
+  maxHeight: "220px",
   overflowY: "auto",
   overflowX: "hidden",
-  paddingBottom: "8px",
-  paddingRight: "8px",
-  paddingLeft: "4px",
+  padding: "8px 4px",
 };
 
 export const chatMessageStyle: CSSProperties = {
-  padding: "10px 12px",
-  borderRadius: "10px",
+  padding: "8px 10px",
+  borderRadius: "8px",
   fontSize: "12px",
   lineHeight: 1.5,
-  maxWidth: "85%",
+  maxWidth: "88%",
   wordWrap: "break-word",
 };
 
 export const chatMessageUserStyle: CSSProperties = {
   ...chatMessageStyle,
   alignSelf: "flex-end",
-  background: "rgba(245,245,245,0.15)",
+  background: "rgba(255,255,255,0.1)",
   color: "#f5f5f5",
-  border: "1px solid rgba(255,255,255,0.1)",
+  border: "none",
 };
 
 export const chatMessageAssistantStyle: CSSProperties = {
   ...chatMessageStyle,
   alignSelf: "flex-start",
-  background: "rgba(255,255,255,0.03)",
+  background: "rgba(255,255,255,0.04)",
   color: "rgba(255,255,255,0.85)",
-  border: "1px solid rgba(255,255,255,0.05)",
+  border: "none",
 };
 
 export const chatInputContainerStyle: CSSProperties = {
   display: "flex",
   gap: "6px",
-  marginTop: "8px",
-  borderTop: "1px solid rgba(255,255,255,0.08)",
+  marginTop: "6px",
   paddingTop: "8px",
+  borderTop: "1px solid rgba(255,255,255,0.06)",
   flexShrink: 0,
 };
 
 export const chatInputStyle: CSSProperties = {
   flex: 1,
-  borderRadius: "10px",
-  border: "1px solid rgba(255,255,255,0.15)",
-  padding: "10px 12px",
-  background: "rgba(255,255,255,0.05)",
+  borderRadius: "8px",
+  border: "1px solid rgba(255,255,255,0.08)",
+  padding: "8px 10px",
+  background: "rgba(255,255,255,0.04)",
   color: "#f5f5f5",
   fontSize: "12px",
   outline: "none",
   resize: "none",
   fontFamily: "inherit",
+  transition: "border-color 0.15s ease",
 };
 
 export const chatSendButtonStyle: CSSProperties = {
-  ...secondaryButtonStyle,
-  flex: "unset",
-  minWidth: "unset",
-  padding: "10px 16px",
-  borderRadius: "10px",
+  borderRadius: "8px",
+  padding: "8px 14px",
+  border: "none",
+  background: "rgba(255,255,255,0.1)",
+  color: "#f5f5f5",
+  fontWeight: "500",
+  fontSize: "11px",
+  cursor: "pointer",
+  transition: "background 0.15s ease",
 };
 
 export const modelDescriptionStyle: CSSProperties = {
@@ -381,18 +428,17 @@ export const customSelectContainerStyle: CSSProperties = {
 };
 
 export const customSelectButtonStyle: CSSProperties = {
-  minWidth: "85px",
   width: "100%",
-  borderRadius: "10px",
-  border: "none",
-  padding: "8px 10px",
-  background: "rgba(255,255,255,0.08)",
+  borderRadius: "8px",
+  border: "1px solid rgba(255,255,255,0.06)",
+  padding: "6px 8px",
+  background: "rgba(255,255,255,0.04)",
   color: "#f5f5f5",
   fontWeight: "500",
-  fontSize: "12px",
+  fontSize: "11px",
   appearance: "none",
   outline: "none",
-  transition: "background 0.2s ease",
+  transition: "background 0.15s ease, border-color 0.15s ease",
   cursor: "pointer",
   textAlign: "left",
 };
@@ -403,22 +449,22 @@ export const customSelectDropdownStyle: CSSProperties = {
   left: 0,
   right: 0,
   marginTop: "4px",
-  borderRadius: "10px",
-  border: "1px solid rgba(255,255,255,0.15)",
-  background: "#050505",
-  boxShadow: "0 8px 24px rgba(0,0,0,0.8)",
+  borderRadius: "8px",
+  border: "1px solid rgba(255,255,255,0.1)",
+  background: "#0a0a0a",
+  boxShadow: "0 8px 24px rgba(0,0,0,0.6)",
   zIndex: 1000,
-  maxHeight: "240px",
+  maxHeight: "200px",
   overflowY: "auto",
   display: "flex",
   flexDirection: "column",
 };
 
 export const customSelectOptionStyle: CSSProperties = {
-  padding: "5px 10px",
+  padding: "8px 10px",
   cursor: "pointer",
-  borderBottom: "1px solid rgba(255,255,255,0.05)",
-  transition: "background 0.2s ease",
+  borderBottom: "1px solid rgba(255,255,255,0.04)",
+  transition: "background 0.15s ease",
 };
 
 export const customSelectOptionHoverStyle: CSSProperties = {
@@ -427,17 +473,20 @@ export const customSelectOptionHoverStyle: CSSProperties = {
 };
 
 export const customSelectOptionLabelStyle: CSSProperties = {
-  fontSize: "8px",
+  fontSize: "11px",
   fontWeight: "500",
   color: "#f5f5f5",
-  marginBottom: "1px",
-  lineHeight: 1.2,
+  marginBottom: "2px",
+  lineHeight: 1.3,
+  textTransform: "none",
+  letterSpacing: "0",
 };
 
 export const customSelectOptionDescriptionStyle: CSSProperties = {
-  fontSize: "6px",
-  color: "rgba(255,255,255,0.65)",
-  lineHeight: 1.3,
+  fontSize: "9px",
+  color: "rgba(255,255,255,0.5)",
+  lineHeight: 1.4,
   fontWeight: "400",
   textTransform: "none",
+  letterSpacing: "0",
 };

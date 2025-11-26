@@ -65,6 +65,9 @@ export async function generateSummary(
     language,
     length
   );
+
+  console.log("prompt", prompt);
+  console.log("model", getModelId(model));
   const response = await ai.models.generateContent({
     model: getModelId(model),
     contents: prompt,
@@ -89,6 +92,7 @@ export async function generateSummary(
       .trim() ?? "";
 
   const finalSummary = inlineText || fallbackText;
+  console.log("finalSummary", finalSummary);
   if (!finalSummary) {
     throw new Error("Gemini returned an empty response.");
   }

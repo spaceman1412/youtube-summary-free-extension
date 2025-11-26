@@ -19,6 +19,8 @@ import {
   inputLabelStyle,
   selectStyle,
   actionRowStyle,
+  tabButtonStyle,
+  tabButtonActiveStyle,
   transcriptSectionStyle,
   summarySectionStyle,
   summaryTextStyle,
@@ -28,7 +30,6 @@ import {
   transcriptTimestampHoverStyle,
   transcriptMessageStyle,
   transcriptErrorStyle,
-  secondaryButtonStyle,
   primaryButtonStyle,
   onboardingTitleStyle,
   onboardingDescriptionStyle,
@@ -47,7 +48,6 @@ import {
   customSelectButtonStyle,
   customSelectDropdownStyle,
   customSelectOptionStyle,
-  customSelectOptionHoverStyle,
   customSelectOptionLabelStyle,
   customSelectOptionDescriptionStyle,
 } from "./styles";
@@ -102,6 +102,7 @@ const CustomModelSelect = ({
   options: ModelOption[];
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [hoveredOption, setHoveredOption] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const selectedOption = options.find((opt) => opt.value === value);
 
@@ -117,21 +118,36 @@ const CustomModelSelect = ({
     };
 
     if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
+      // Use 'click' instead of 'mousedown' and add a small delay
+      // to ensure option clicks fire before the outside handler
+      const timeoutId = setTimeout(() => {
+        document.addEventListener("click", handleClickOutside);
+      }, 0);
+
       return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
+        clearTimeout(timeoutId);
+        document.removeEventListener("click", handleClickOutside);
       };
     }
   }, [isOpen]);
 
+  const handleOptionClick = (optionValue: string) => {
+    onChange(optionValue);
+    setIsOpen(false);
+  };
+
   return (
-    <label style={inputLabelStyle}>
-      {label}
+    <div style={inputLabelStyle}>
+      <span>{label}</span>
       <div style={customSelectContainerStyle} ref={containerRef}>
         <button
           type="button"
           style={customSelectButtonStyle}
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsOpen(!isOpen);
+          }}
         >
           {selectedOption?.label || "Select model"}
         </button>
@@ -139,29 +155,26 @@ const CustomModelSelect = ({
           <div style={customSelectDropdownStyle}>
             {options.map((option) => {
               const isSelected = option.value === value;
+              const isHovered = hoveredOption === option.value;
               return (
                 <div
                   key={option.value}
-                  style={
-                    isSelected
-                      ? customSelectOptionHoverStyle
-                      : customSelectOptionStyle
-                  }
-                  onClick={() => {
-                    onChange(option.value);
-                    setIsOpen(false);
+                  style={{
+                    ...customSelectOptionStyle,
+                    background:
+                      isSelected || isHovered
+                        ? "rgba(255,255,255,0.08)"
+                        : "transparent",
                   }}
-                  onMouseEnter={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.background =
-                        "rgba(255,255,255,0.05)";
-                    }
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleOptionClick(option.value);
                   }}
-                  onMouseLeave={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.background = "transparent";
-                    }
-                  }}
+                  onMouseEnter={() => setHoveredOption(option.value)}
+                  onMouseLeave={() => setHoveredOption(null)}
+                  role="option"
+                  aria-selected={isSelected}
                 >
                   <div style={customSelectOptionLabelStyle}>{option.label}</div>
                   {option.description && (
@@ -175,7 +188,7 @@ const CustomModelSelect = ({
           </div>
         )}
       </div>
-    </label>
+    </div>
   );
 };
 
@@ -205,7 +218,9 @@ const renderModelSelect = (
 export default function Widget() {
   // State for user-selected options
   const [language, setLanguage] = useState(languages[0]?.value ?? "en");
-  const [model, setModel] = useState(models[0]?.value ?? "gemini-2.5-flash");
+  const [model, setModel] = useState(
+    models[2]?.value ?? "gemini-2.5-flash-lite"
+  );
   const [length, setLength] = useState(lengths[1]?.value ?? "medium");
   const [transcriptSegments, setTranscriptSegments] = useState<
     TranscriptSegment[]
@@ -813,43 +828,41 @@ export default function Widget() {
           {renderSelect("Length", length, setLength, lengths)}
         </div>
 
-        {/* Action buttons */}
+        {/* Tab-like action buttons */}
         <div style={actionRowStyle}>
-          {/* Primary action: Generate summary */}
           <button
-            style={{
-              ...primaryButtonStyle,
-              opacity: isSummaryLoading ? 0.8 : 1,
-            }}
+            style={
+              activeView === "summary" || isSummaryLoading
+                ? tabButtonActiveStyle
+                : tabButtonStyle
+            }
             onClick={handleSummaryClick}
             disabled={isSummaryLoading}
           >
             <span>✨</span>
-            <span>{isSummaryLoading ? "Summarizing…" : "Summary"}</span>
+            <span>{isSummaryLoading ? "…" : "Summary"}</span>
           </button>
-          {/* Secondary action: View transcript */}
           <button
-            style={{
-              ...secondaryButtonStyle,
-              opacity: isTranscriptLoading ? 0.7 : 1,
-            }}
+            style={
+              activeView === "transcript"
+                ? tabButtonActiveStyle
+                : tabButtonStyle
+            }
             onClick={handleTranscriptClick}
             disabled={isTranscriptLoading}
           >
             <span>📄</span>
-            <span>{isTranscriptLoading ? "Loading…" : "Transcript"}</span>
+            <span>{isTranscriptLoading ? "…" : "Transcript"}</span>
           </button>
-          {/* Secondary action: Open chat */}
           <button
-            style={{
-              ...secondaryButtonStyle,
-              opacity: isChatLoading ? 0.7 : 1,
-            }}
+            style={
+              activeView === "chat" ? tabButtonActiveStyle : tabButtonStyle
+            }
             onClick={handleChatClick}
-            disabled={isChatLoading}
+            disabled={isChatLoading && activeView !== "chat"}
           >
             <span>💬</span>
-            <span>{isChatLoading ? "Loading…" : "Chat"}</span>
+            <span>Chat</span>
           </button>
         </div>
       </div>
