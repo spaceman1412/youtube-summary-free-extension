@@ -4,8 +4,8 @@
  * along with action buttons for Summary, Transcript, and Chat features.
  */
 
-import { useEffect, useState } from "react";
-import type { TranscriptSegment, ActiveView } from "./types";
+import { useEffect, useState, useRef } from "react";
+import type { TranscriptSegment, ActiveView, ChatMessage } from "./types";
 import { languages, models, lengths, GOOGLE_API_KEY_URL } from "./constants";
 import {
   cardStyle,
@@ -35,10 +35,18 @@ import {
   gateActionsStyle,
   linkButtonStyle,
   helperTextStyle,
+  chatSectionStyle,
+  chatMessagesStyle,
+  chatMessageUserStyle,
+  chatMessageAssistantStyle,
+  chatInputContainerStyle,
+  chatInputStyle,
+  chatSendButtonStyle,
 } from "./styles";
 import { formatTimestamp, extractCurrentVideoId } from "./utils";
 import { fetchTranscriptForVideo } from "./transcriptService";
 import { generateSummary, buildSummaryCacheKey } from "./summaryService";
+import { generateChatResponse } from "./chatService";
 import { getStoredApiKey, saveApiKey, removeApiKey } from "./apiKeyService";
 
 /**
@@ -89,6 +97,15 @@ export default function Widget() {
   const [apiKeyNotice, setApiKeyNotice] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<ActiveView>(null);
   const [summaryCache, setSummaryCache] = useState<Record<string, string>>({});
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const [chatError, setChatError] = useState<string | null>(null);
+  const chatMessagesEndRef = useRef<HTMLDivElement>(null);
+  const chatMessagesContainerRef = useRef<HTMLDivElement>(null);
+  const currentVideoIdRef = useRef<string | undefined>(undefined);
+  const previousMessageCountRef = useRef<number>(0);
+  const isUserScrollingRef = useRef<boolean>(false);
 
   // Load API key from storage on mount
   useEffect(() => {
@@ -98,6 +115,50 @@ export default function Widget() {
       setApiKeyInput(storedKey);
     }
   }, []);
+
+  // Reset chat messages when video changes
+  useEffect(() => {
+    const checkVideoChange = () => {
+      const videoId = extractCurrentVideoId();
+      if (videoId !== currentVideoIdRef.current) {
+        currentVideoIdRef.current = videoId;
+        setChatMessages([]);
+        setChatError(null);
+        previousMessageCountRef.current = 0;
+        if (activeView === "chat") {
+          setActiveView(null);
+        }
+      }
+    };
+
+    // Check immediately
+    checkVideoChange();
+
+    // Set up interval to check for video changes
+    const interval = setInterval(checkVideoChange, 1000);
+
+    return () => clearInterval(interval);
+  }, [activeView]);
+
+  // Scroll to bottom of chat messages when new messages are added
+  useEffect(() => {
+    if (
+      activeView === "chat" &&
+      chatMessagesEndRef.current &&
+      chatMessagesContainerRef.current &&
+      chatMessages.length > previousMessageCountRef.current &&
+      !isUserScrollingRef.current
+    ) {
+      // Use setTimeout to ensure DOM is updated
+      setTimeout(() => {
+        if (!isUserScrollingRef.current && chatMessagesContainerRef.current) {
+          chatMessagesContainerRef.current.scrollTop =
+            chatMessagesContainerRef.current.scrollHeight;
+        }
+      }, 100);
+      previousMessageCountRef.current = chatMessages.length;
+    }
+  }, [chatMessages.length, activeView]);
 
   const handleApiKeyInputChange = (value: string) => {
     setApiKeyInput(value);
@@ -126,6 +187,9 @@ export default function Widget() {
     setTranscriptLocale(null);
     setActiveView(null);
     setSummaryCache({});
+    setChatMessages([]);
+    setChatInput("");
+    setChatError(null);
   };
 
   const transcriptMatchesLanguage =
@@ -235,6 +299,117 @@ export default function Widget() {
     }
   };
 
+  const handleChatClick = async () => {
+    if (!apiKey) {
+      setChatError("Please add your Google AI Studio API key to continue.");
+      return;
+    }
+
+    const videoId = extractCurrentVideoId();
+    if (!videoId) {
+      setChatError("Unable to detect the current video.");
+      return;
+    }
+
+    setActiveView("chat");
+    setChatError(null);
+
+    // Ensure we have transcript
+    if (!transcriptMatchesLanguage) {
+      setIsChatLoading(true);
+      try {
+        const transcript = await fetchTranscriptForVideo(language);
+        setTranscriptSegments(transcript);
+        setTranscriptLocale(language);
+        if (!transcript.length) {
+          setChatError("Transcript was empty for this video.");
+        }
+      } catch (error) {
+        setChatError(
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch transcript. Please try again."
+        );
+      } finally {
+        setIsChatLoading(false);
+      }
+    }
+  };
+
+  const handleSendMessage = async () => {
+    const trimmedInput = chatInput.trim();
+    if (!trimmedInput || isChatLoading) return;
+    if (!apiKey) {
+      setChatError("Please add your Google AI Studio API key to continue.");
+      return;
+    }
+
+    const videoId = extractCurrentVideoId();
+    if (!videoId) {
+      setChatError("Unable to detect the current video.");
+      return;
+    }
+
+    // Ensure we have transcript
+    let transcript = transcriptSegments;
+    if (!transcriptMatchesLanguage) {
+      setIsChatLoading(true);
+      try {
+        transcript = await fetchTranscriptForVideo(language);
+        setTranscriptSegments(transcript);
+        setTranscriptLocale(language);
+        if (!transcript.length) {
+          setChatError("Transcript was empty for this video.");
+          setIsChatLoading(false);
+          return;
+        }
+      } catch (error) {
+        setChatError(
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch transcript. Please try again."
+        );
+        setIsChatLoading(false);
+        return;
+      } finally {
+        setIsChatLoading(false);
+      }
+    }
+
+    // Add user message
+    const userMessage: ChatMessage = { role: "user", content: trimmedInput };
+    const updatedMessages = [...chatMessages, userMessage];
+    setChatMessages(updatedMessages);
+    setChatInput("");
+    setChatError(null);
+    setIsChatLoading(true);
+
+    try {
+      const response = await generateChatResponse(
+        apiKey,
+        updatedMessages,
+        transcript,
+        model,
+        language
+      );
+      const assistantMessage: ChatMessage = {
+        role: "assistant",
+        content: response,
+      };
+      setChatMessages([...updatedMessages, assistantMessage]);
+    } catch (error) {
+      setChatError(
+        error instanceof Error
+          ? error.message
+          : "Failed to generate response. Please try again."
+      );
+      // Remove the user message if there was an error
+      setChatMessages(chatMessages);
+    } finally {
+      setIsChatLoading(false);
+    }
+  };
+
   const renderSummaryPanel = () => (
     <div style={summarySectionStyle}>
       {isSummaryLoading && (
@@ -308,9 +483,76 @@ export default function Widget() {
     </div>
   );
 
+  const renderChatPanel = () => (
+    <div style={chatSectionStyle}>
+      <div
+        ref={chatMessagesContainerRef}
+        style={chatMessagesStyle}
+        onScroll={() => {
+          if (chatMessagesContainerRef.current) {
+            const { scrollTop, scrollHeight, clientHeight } =
+              chatMessagesContainerRef.current;
+            // Check if user is near bottom (within 50px)
+            const isNearBottom = scrollHeight - scrollTop - clientHeight < 50;
+            isUserScrollingRef.current = !isNearBottom;
+          }
+        }}
+      >
+        {chatMessages.length === 0 && !isChatLoading && !chatError && (
+          <div style={transcriptMessageStyle}>
+            Ask questions about this video. The transcript will be used as
+            context.
+          </div>
+        )}
+        {chatMessages.map((message, index) => (
+          <div
+            key={index}
+            style={
+              message.role === "user"
+                ? chatMessageUserStyle
+                : chatMessageAssistantStyle
+            }
+          >
+            {message.content}
+          </div>
+        ))}
+        {isChatLoading && <div style={transcriptMessageStyle}>Thinking…</div>}
+        {chatError && <div style={transcriptErrorStyle}>{chatError}</div>}
+        <div ref={chatMessagesEndRef} />
+      </div>
+      <div style={chatInputContainerStyle}>
+        <input
+          style={chatInputStyle}
+          type="text"
+          placeholder="Ask a question..."
+          value={chatInput}
+          onChange={(event) => setChatInput(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && !event.shiftKey) {
+              event.preventDefault();
+              handleSendMessage();
+            }
+          }}
+          disabled={isChatLoading}
+        />
+        <button
+          style={{
+            ...chatSendButtonStyle,
+            opacity: isChatLoading || !chatInput.trim() ? 0.5 : 1,
+          }}
+          onClick={handleSendMessage}
+          disabled={isChatLoading || !chatInput.trim()}
+        >
+          Send
+        </button>
+      </div>
+    </div>
+  );
+
   const renderContentPanel = () => {
     if (activeView === "summary") return renderSummaryPanel();
     if (activeView === "transcript") return renderTranscriptPanel();
+    if (activeView === "chat") return renderChatPanel();
     return renderPlaceholderPanel();
   };
 
@@ -441,9 +683,16 @@ export default function Widget() {
             <span>{isTranscriptLoading ? "Loading…" : "Transcript"}</span>
           </button>
           {/* Secondary action: Open chat */}
-          <button style={secondaryButtonStyle}>
+          <button
+            style={{
+              ...secondaryButtonStyle,
+              opacity: isChatLoading ? 0.7 : 1,
+            }}
+            onClick={handleChatClick}
+            disabled={isChatLoading}
+          >
             <span>💬</span>
-            <span>Chat</span>
+            <span>{isChatLoading ? "Loading…" : "Chat"}</span>
           </button>
         </div>
       </div>

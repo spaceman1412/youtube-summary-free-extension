@@ -279,3 +279,82 @@ export const helperTextStyle: CSSProperties = {
   color: "rgba(255,255,255,0.6)",
   textAlign: "center",
 };
+
+export const chatSectionStyle: CSSProperties = {
+  ...sectionStyle,
+  marginTop: "8px",
+  maxHeight: "320px",
+  gap: "0",
+  display: "flex",
+  flexDirection: "column",
+  overflow: "hidden",
+};
+
+export const chatMessagesStyle: CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "8px",
+  flex: 1,
+  minHeight: "100px",
+  maxHeight: "260px",
+  overflowY: "auto",
+  overflowX: "hidden",
+  paddingBottom: "8px",
+  paddingRight: "8px",
+  paddingLeft: "4px",
+};
+
+export const chatMessageStyle: CSSProperties = {
+  padding: "10px 12px",
+  borderRadius: "10px",
+  fontSize: "12px",
+  lineHeight: 1.5,
+  maxWidth: "85%",
+  wordWrap: "break-word",
+};
+
+export const chatMessageUserStyle: CSSProperties = {
+  ...chatMessageStyle,
+  alignSelf: "flex-end",
+  background: "rgba(245,245,245,0.15)",
+  color: "#f5f5f5",
+  border: "1px solid rgba(255,255,255,0.1)",
+};
+
+export const chatMessageAssistantStyle: CSSProperties = {
+  ...chatMessageStyle,
+  alignSelf: "flex-start",
+  background: "rgba(255,255,255,0.03)",
+  color: "rgba(255,255,255,0.85)",
+  border: "1px solid rgba(255,255,255,0.05)",
+};
+
+export const chatInputContainerStyle: CSSProperties = {
+  display: "flex",
+  gap: "6px",
+  marginTop: "8px",
+  borderTop: "1px solid rgba(255,255,255,0.08)",
+  paddingTop: "8px",
+  flexShrink: 0,
+};
+
+export const chatInputStyle: CSSProperties = {
+  flex: 1,
+  borderRadius: "10px",
+  border: "1px solid rgba(255,255,255,0.15)",
+  padding: "10px 12px",
+  background: "rgba(255,255,255,0.05)",
+  color: "#f5f5f5",
+  fontSize: "12px",
+  outline: "none",
+  resize: "none",
+  fontFamily: "inherit",
+};
+
+export const chatSendButtonStyle: CSSProperties = {
+  ...secondaryButtonStyle,
+  flex: "unset",
+  minWidth: "unset",
+  padding: "10px 16px",
+  borderRadius: "10px",
+};

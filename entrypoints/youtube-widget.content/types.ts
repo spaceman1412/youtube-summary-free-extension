@@ -7,7 +7,12 @@ export type TranscriptSegment = {
   text: string;
 };
 
-export type ActiveView = "summary" | "transcript" | null;
+export type ActiveView = "summary" | "transcript" | "chat" | null;
+
+export type ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
 
 export type LanguageOption = {
   label: string;
