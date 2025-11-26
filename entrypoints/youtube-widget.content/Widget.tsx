@@ -52,8 +52,10 @@ import {
   customSelectOptionStyle,
   customSelectOptionLabelStyle,
   customSelectOptionDescriptionStyle,
-  minimizeButtonStyle,
   floatingLauncherStyle,
+  headerContainerStyle,
+  headerIconButtonStyle,
+  headerIconButtonGhostStyle,
 } from "./styles";
 import {
   formatTimestamp,
@@ -250,6 +252,7 @@ export default function Widget() {
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [isEditingApiKey, setIsEditingApiKey] = useState(false);
   const chatMessagesEndRef = useRef<HTMLDivElement>(null);
   const chatMessagesContainerRef = useRef<HTMLDivElement>(null);
   const currentVideoIdRef = useRef<string | undefined>(undefined);
@@ -375,6 +378,7 @@ export default function Widget() {
     saveApiKey(trimmed);
     setApiKey(trimmed);
     setApiKeyNotice("API key saved. You can update it anytime.");
+    setIsEditingApiKey(false);
   };
 
   const handleResetApiKey = () => {
@@ -391,6 +395,7 @@ export default function Widget() {
     setChatMessages([]);
     setChatInput("");
     setChatError(null);
+    setIsEditingApiKey(false);
   };
 
   const handleMinimize = () => {
@@ -401,8 +406,23 @@ export default function Widget() {
     setIsMinimized(false);
   };
 
+  const handleToggleApiKeyEditor = () => {
+    if (!apiKey && !isEditingApiKey) {
+      return;
+    }
+    setIsEditingApiKey((previous) => {
+      const next = !previous;
+      if (next) {
+        setApiKeyInput(apiKey);
+      }
+      return next;
+    });
+    setApiKeyNotice(null);
+  };
+
   const transcriptMatchesLanguage =
     transcriptSegments.length > 0 && transcriptLocale === language;
+  const showApiKeyGate = !apiKey || isEditingApiKey;
 
   const handleTranscriptClick = async () => {
     if (isTranscriptLoading) return;
@@ -836,6 +856,95 @@ export default function Widget() {
     return renderPlaceholderPanel();
   };
 
+  const renderHeader = () => {
+    const isEditButtonDisabled = !apiKey && !isEditingApiKey;
+    const editButtonStyle =
+      isEditingApiKey || showApiKeyGate
+        ? headerIconButtonStyle
+        : headerIconButtonGhostStyle;
+    const editIcon = isEditingApiKey ? "✕" : "🔑";
+
+    return (
+      <div style={headerContainerStyle}>
+        <button
+          type="button"
+          style={editButtonStyle}
+          onClick={handleToggleApiKeyEditor}
+          disabled={isEditButtonDisabled}
+          aria-pressed={isEditingApiKey}
+          aria-label={isEditingApiKey ? "Close API key editor" : "Edit API key"}
+          title={isEditingApiKey ? "Close API key editor" : "Edit API key"}
+        >
+          <span aria-hidden="true">{editIcon}</span>
+        </button>
+        <button
+          type="button"
+          style={headerIconButtonStyle}
+          onClick={handleMinimize}
+          aria-label="Minimize widget"
+          title="Minimize widget"
+        >
+          <span aria-hidden="true">−</span>
+        </button>
+      </div>
+    );
+  };
+
+  const renderApiKeyGate = () => (
+    <div style={sectionStyle}>
+      <div style={onboardingTitleStyle}>Connect Google AI Studio</div>
+      <div style={onboardingDescriptionStyle}>
+        You need a Google AI Studio API key to generate summaries. Getting one
+        is free and only takes a minute.
+      </div>
+      <input
+        style={apiKeyInputStyle}
+        placeholder="Paste your API key"
+        type="password"
+        value={apiKeyInput}
+        onChange={(event) => {
+          handleApiKeyInputChange(event.target.value);
+        }}
+      />
+      <div style={gateActionsStyle}>
+        <button style={primaryButtonStyle} onClick={handleSaveApiKey}>
+          Save API key
+        </button>
+        <a
+          href={GOOGLE_API_KEY_URL}
+          style={linkButtonStyle}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Get free API key ↗
+        </a>
+      </div>
+      {apiKeyNotice && (
+        <div
+          style={
+            apiKeyNotice.includes("Please")
+              ? transcriptErrorStyle
+              : transcriptMessageStyle
+          }
+        >
+          {apiKeyNotice}
+        </div>
+      )}
+      <div style={helperTextStyle}>
+        Stored securely in this browser only (localStorage).
+      </div>
+      {apiKey && (
+        <button
+          type="button"
+          style={{ ...linkButtonStyle, background: "transparent" }}
+          onClick={handleResetApiKey}
+        >
+          Remove saved key
+        </button>
+      )}
+    </div>
+  );
+
   if (isMinimized) {
     return (
       <button
@@ -849,122 +958,59 @@ export default function Widget() {
     );
   }
 
-  if (!apiKey) {
-    return (
-      <div style={cardStyle}>
-        <button
-          type="button"
-          style={minimizeButtonStyle}
-          onClick={handleMinimize}
-          aria-label="Minimize widget"
-        >
-          -
-        </button>
-        <div style={sectionStyle}>
-          <div style={onboardingTitleStyle}>Connect Google AI Studio</div>
-          <div style={onboardingDescriptionStyle}>
-            You need a Google AI Studio API key to generate summaries. Getting
-            one is free and only takes a minute.
-          </div>
-          <input
-            style={apiKeyInputStyle}
-            placeholder="Paste your API key"
-            type="password"
-            value={apiKeyInput}
-            onChange={(event) => {
-              handleApiKeyInputChange(event.target.value);
-            }}
-          />
-          <div style={gateActionsStyle}>
-            <button style={primaryButtonStyle} onClick={handleSaveApiKey}>
-              Save API key
-            </button>
-            <a
-              href={GOOGLE_API_KEY_URL}
-              style={linkButtonStyle}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Get free API key ↗
-            </a>
-          </div>
-          {apiKeyNotice && (
-            <div
-              style={
-                apiKeyNotice.includes("Please")
-                  ? transcriptErrorStyle
-                  : transcriptMessageStyle
-              }
-            >
-              {apiKeyNotice}
-            </div>
-          )}
-          <div style={helperTextStyle}>
-            Stored securely in this browser only (localStorage).
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div style={cardStyle}>
-      <button
-        type="button"
-        style={minimizeButtonStyle}
-        onClick={handleMinimize}
-        aria-label="Minimize widget"
-      >
-        -
-      </button>
-      {/* Main content section */}
-      <div style={sectionStyle}>
-        {/* Dropdown selectors for configuration */}
-        <div style={pickerRowStyle}>
-          {renderSelect("Language", language, setLanguage, languages)}
-          {renderModelSelect("Model", model, setModel, models)}
-          {renderSelect("Length", length, setLength, lengths)}
-        </div>
-
-        {/* Tab-like action buttons */}
-        <div style={actionRowStyle}>
-          <button
-            style={
-              activeView === "summary" || isSummaryLoading
-                ? tabButtonActiveStyle
-                : tabButtonStyle
-            }
-            onClick={handleSummaryClick}
-            disabled={isSummaryLoading}
-          >
-            <span>✨</span>
-            <span>{isSummaryLoading ? "…" : "Summary"}</span>
-          </button>
-          <button
-            style={
-              activeView === "transcript"
-                ? tabButtonActiveStyle
-                : tabButtonStyle
-            }
-            onClick={handleTranscriptClick}
-            disabled={isTranscriptLoading}
-          >
-            <span>📄</span>
-            <span>{isTranscriptLoading ? "…" : "Transcript"}</span>
-          </button>
-          <button
-            style={
-              activeView === "chat" ? tabButtonActiveStyle : tabButtonStyle
-            }
-            onClick={handleChatClick}
-            disabled={isChatLoading && activeView !== "chat"}
-          >
-            <span>💬</span>
-            <span>Chat</span>
-          </button>
-        </div>
-      </div>
-      {renderContentPanel()}
+      {renderHeader()}
+      {showApiKeyGate ? (
+        renderApiKeyGate()
+      ) : (
+        <>
+          <div style={sectionStyle}>
+            <div style={pickerRowStyle}>
+              {renderSelect("Language", language, setLanguage, languages)}
+              {renderModelSelect("Model", model, setModel, models)}
+              {renderSelect("Length", length, setLength, lengths)}
+            </div>
+            <div style={actionRowStyle}>
+              <button
+                style={
+                  activeView === "summary" || isSummaryLoading
+                    ? tabButtonActiveStyle
+                    : tabButtonStyle
+                }
+                onClick={handleSummaryClick}
+                disabled={isSummaryLoading}
+              >
+                <span>✨</span>
+                <span>{isSummaryLoading ? "…" : "Summary"}</span>
+              </button>
+              <button
+                style={
+                  activeView === "transcript"
+                    ? tabButtonActiveStyle
+                    : tabButtonStyle
+                }
+                onClick={handleTranscriptClick}
+                disabled={isTranscriptLoading}
+              >
+                <span>📄</span>
+                <span>{isTranscriptLoading ? "…" : "Transcript"}</span>
+              </button>
+              <button
+                style={
+                  activeView === "chat" ? tabButtonActiveStyle : tabButtonStyle
+                }
+                onClick={handleChatClick}
+                disabled={isChatLoading && activeView !== "chat"}
+              >
+                <span>💬</span>
+                <span>Chat</span>
+              </button>
+            </div>
+          </div>
+          {renderContentPanel()}
+        </>
+      )}
     </div>
   );
 }

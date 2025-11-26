@@ -137,12 +137,36 @@ export const tabButtonActiveStyle: CSSProperties = {
 /**
  * Header section style - contains brand logo and action icons
  */
-export const headerStyle: CSSProperties = {
+export const headerContainerStyle: CSSProperties = {
   display: "flex",
+  justifyContent: "flex-end",
+  gap: "6px",
+};
+
+const headerIconButtonBase: CSSProperties = {
+  width: "30px",
+  height: "30px",
+  borderRadius: "999px",
+  border: "1px solid rgba(255,255,255,0.12)",
+  background: "rgba(255,255,255,0.08)",
+  color: "#f5f5f5",
+  cursor: "pointer",
+  display: "inline-flex",
   alignItems: "center",
-  justifyContent: "space-between",
-  paddingBottom: "12px",
-  borderBottom: "1px solid rgba(255,255,255,0.08)",
+  justifyContent: "center",
+  fontSize: "13px",
+  transition:
+    "background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease",
+};
+
+export const headerIconButtonStyle: CSSProperties = {
+  ...headerIconButtonBase,
+};
+
+export const headerIconButtonGhostStyle: CSSProperties = {
+  ...headerIconButtonBase,
+  background: "transparent",
+  color: "rgba(255,255,255,0.85)",
 };
 
 /**
@@ -271,24 +295,6 @@ export const iconButtonStyle: CSSProperties = {
   cursor: "pointer",
 };
 
-export const minimizeButtonStyle: CSSProperties = {
-  position: "absolute",
-  top: "8px",
-  right: "8px",
-  borderRadius: "999px",
-  border: "1px solid rgba(255,255,255,0.15)",
-  background: "rgba(255,255,255,0.08)",
-  color: "#f5f5f5",
-  width: "28px",
-  height: "28px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontSize: "12px",
-  cursor: "pointer",
-  transition: "background 0.2s ease, border-color 0.2s ease",
-};
-
 export const floatingLauncherStyle: CSSProperties = {
   position: "fixed",
   bottom: "24px",
@@ -358,6 +364,7 @@ export const onboardingDescriptionStyle: CSSProperties = {
 
 export const apiKeyInputStyle: CSSProperties = {
   width: "100%",
+  boxSizing: "border-box",
   borderRadius: "8px",
   border: "1px solid rgba(255,255,255,0.1)",
   padding: "10px 12px",
