@@ -1,354 +1,70 @@
-// src/entrypoints/youtube-widget.content/Widget.tsx
 /**
  * React component for the YouTube Summary Widget.
  * Displays a UI card with options for language, model, and summary length,
  * along with action buttons for Summary, Transcript, and Chat features.
  */
 
-import { type CSSProperties, useEffect, useState } from "react";
-import { GoogleGenAI } from "@google/genai";
-import { fetchTranscript } from "youtube-transcript-plus";
-
-type TranscriptSegment = {
-  offset: number;
-  text: string;
-};
-
-type ActiveView = "summary" | "transcript" | null;
-
-// ============================================================================
-// STYLE DEFINITIONS
-// ============================================================================
-
-/**
- * Main card container style - dark theme with rounded corners and shadow
- */
-const cardStyle: CSSProperties = {
-  borderRadius: "16px",
-  padding: "16px",
-  background: "#050505",
-  color: "#f5f5f5",
-  boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
-  border: "1px solid rgba(255,255,255,0.08)",
-  display: "flex",
-  flexDirection: "column",
-  gap: "8px",
-};
-
-/**
- * Inner section style - nested container for form controls and buttons
- */
-const sectionStyle: CSSProperties = {
-  background: "rgba(255,255,255,0.02)",
-  borderRadius: "12px",
-  border: "1px solid rgba(255,255,255,0.08)",
-  padding: "12px",
-  display: "flex",
-  flexDirection: "column",
-  gap: "6px",
-  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
-};
+import { useEffect, useState } from "react";
+import type { TranscriptSegment, ActiveView } from "./types";
+import { languages, models, lengths, GOOGLE_API_KEY_URL } from "./constants";
+import {
+  cardStyle,
+  sectionStyle,
+  pickerRowStyle,
+  inputLabelStyle,
+  selectStyle,
+  actionRowStyle,
+  headerStyle,
+  brandStyle,
+  brandIconStyle,
+  headerActionsStyle,
+  transcriptSectionStyle,
+  summarySectionStyle,
+  summaryTextStyle,
+  transcriptListStyle,
+  transcriptItemStyle,
+  transcriptTimestampStyle,
+  transcriptMessageStyle,
+  transcriptErrorStyle,
+  iconButtonStyle,
+  secondaryButtonStyle,
+  primaryButtonStyle,
+  onboardingTitleStyle,
+  onboardingDescriptionStyle,
+  apiKeyInputStyle,
+  gateActionsStyle,
+  linkButtonStyle,
+  helperTextStyle,
+} from "./styles";
+import { formatTimestamp, extractCurrentVideoId } from "./utils";
+import { fetchTranscriptForVideo } from "./transcriptService";
+import { generateSummary, buildSummaryCacheKey } from "./summaryService";
+import { getStoredApiKey, saveApiKey, removeApiKey } from "./apiKeyService";
 
 /**
- * Row container for the dropdown selectors (Language, Model, Length)
+ * Helper function to render a labeled dropdown select.
  */
-const pickerRowStyle: CSSProperties = {
-  display: "flex",
-  gap: "4px",
-  flexWrap: "wrap",
-  justifyContent: "center",
-};
-
-/**
- * Label style for form inputs - small uppercase text with spacing
- */
-const inputLabelStyle: CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "2px",
-  fontSize: "9px",
-  fontWeight: "600",
-  textTransform: "uppercase",
-  letterSpacing: "0.1em",
-  color: "rgba(255,255,255,0.7)",
-};
-
-/**
- * Dropdown select input style - dark theme with rounded corners
- */
-const selectStyle: CSSProperties = {
-  minWidth: "100px",
-  borderRadius: "10px",
-  border: "none",
-  padding: "10px 12px",
-  background: "rgba(255,255,255,0.08)",
-  color: "#f5f5f5",
-  fontWeight: "500",
-  fontSize: "12px",
-  appearance: "none",
-  outline: "none",
-  transition: "background 0.2s ease",
-};
-
-/**
- * Row container for action buttons (Summary, Transcript, Chat)
- */
-const actionRowStyle: CSSProperties = {
-  display: "flex",
-  gap: "6px",
-  flexWrap: "wrap",
-  justifyContent: "center",
-};
-
-/**
- * Header section style - contains brand logo and action icons
- */
-const headerStyle: CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  paddingBottom: "12px",
-  borderBottom: "1px solid rgba(255,255,255,0.08)",
-};
-
-/**
- * Brand/logo container style - displays "Copilot" branding
- */
-const brandStyle: CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: "10px",
-  fontSize: "12px",
-  letterSpacing: "0.2em",
-  textTransform: "uppercase",
-  color: "rgba(255,255,255,0.7)",
-};
-
-/**
- * Brand icon container style - circular icon box
- */
-const brandIconStyle: CSSProperties = {
-  width: "30px",
-  height: "30px",
-  borderRadius: "8px",
-  border: "1px solid rgba(255,255,255,0.12)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontSize: "14px",
-  color: "#f5f5f5",
-};
-
-/**
- * Container for header action buttons (expand, refresh icons)
- */
-const headerActionsStyle: CSSProperties = {
-  display: "flex",
-  gap: "6px",
-};
-
-const transcriptSectionStyle: CSSProperties = {
-  ...sectionStyle,
-  marginTop: "8px",
-  maxHeight: "220px",
-  overflowY: "auto",
-  gap: "10px",
-};
-
-const summarySectionStyle: CSSProperties = {
-  ...sectionStyle,
-  marginTop: "8px",
-  gap: "10px",
-};
-
-const summaryTextStyle: CSSProperties = {
-  fontSize: "13px",
-  lineHeight: 1.5,
-  color: "rgba(255,255,255,0.85)",
-  textAlign: "left",
-};
-
-const transcriptListStyle: CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "8px",
-};
-
-const transcriptItemStyle: CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  padding: "10px",
-  borderRadius: "10px",
-  background: "rgba(255,255,255,0.03)",
-  border: "1px solid rgba(255,255,255,0.05)",
-};
-
-const transcriptTimestampStyle: CSSProperties = {
-  fontSize: "10px",
-  color: "rgba(255,255,255,0.6)",
-  letterSpacing: "0.08em",
-  textTransform: "uppercase",
-  marginBottom: "4px",
-};
-
-const transcriptMessageStyle: CSSProperties = {
-  fontSize: "12px",
-  color: "rgba(255,255,255,0.75)",
-  textAlign: "center",
-};
-
-const transcriptErrorStyle: CSSProperties = {
-  ...transcriptMessageStyle,
-  color: "#ff8a8a",
-};
-
-/**
- * Small icon button style - used for header actions (circular buttons)
- */
-const iconButtonStyle: CSSProperties = {
-  width: "32px",
-  height: "32px",
-  borderRadius: "999px",
-  border: "1px solid rgba(255,255,255,0.15)",
-  background: "transparent",
-  color: "#f5f5f5",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontSize: "12px",
-  cursor: "pointer",
-};
-
-/**
- * Base button style - shared styles for all action buttons
- */
-const buttonBase: CSSProperties = {
-  flex: 1,
-  minWidth: "85px",
-  borderRadius: "999px",
-  padding: "10px 14px",
-  border: "1px solid rgba(255,255,255,0.2)",
-  fontWeight: "600",
-  fontSize: "11px",
-  cursor: "pointer",
-  transition: "background 0.3s ease, color 0.3s ease",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: "4px",
-};
-
-/**
- * Secondary button style - transparent background (for Transcript, Chat buttons)
- */
-const secondaryButtonStyle: CSSProperties = {
-  ...buttonBase,
-  background: "transparent",
-  color: "#f5f5f5",
-};
-
-const primaryButtonStyle: CSSProperties = {
-  ...buttonBase,
-  background: "#f5f5f5",
-  color: "#050505",
-  borderColor: "transparent",
-};
-
-const onboardingTitleStyle: CSSProperties = {
-  fontSize: "16px",
-  fontWeight: 600,
-  textAlign: "center",
-};
-
-const onboardingDescriptionStyle: CSSProperties = {
-  fontSize: "12px",
-  color: "rgba(255,255,255,0.75)",
-  textAlign: "center",
-  lineHeight: 1.5,
-};
-
-const apiKeyInputStyle: CSSProperties = {
-  width: "100%",
-  borderRadius: "10px",
-  border: "1px solid rgba(255,255,255,0.15)",
-  padding: "12px",
-  background: "rgba(255,255,255,0.05)",
-  color: "#f5f5f5",
-  fontSize: "12px",
-  outline: "none",
-};
-
-const gateActionsStyle: CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "8px",
-};
-
-const linkButtonStyle: CSSProperties = {
-  ...secondaryButtonStyle,
-  textDecoration: "none",
-  textAlign: "center",
-};
-
-const helperTextStyle: CSSProperties = {
-  fontSize: "10px",
-  color: "rgba(255,255,255,0.6)",
-  textAlign: "center",
-};
-
-// ============================================================================
-// DATA CONFIGURATIONS
-// ============================================================================
-
-/**
- * Available languages for summary generation
- */
-const languages = [
-  { label: "English", value: "en" },
-  { label: "Español", value: "es" },
-  { label: "日本語", value: "jp" },
-];
-
-/**
- * Available AI models for summary generation
- */
-const models = [
-  { label: "GPT-4o", value: "gpt-4o" },
-  { label: "Sonnet 3.5", value: "sonnet-3.5" },
-  { label: "Mini", value: "mini" },
-];
-
-/**
- * Available summary length options
- */
-const lengths = [
-  { label: "Concise", value: "short" },
-  { label: "Medium", value: "medium" },
-  { label: "Detailed", value: "long" },
-];
-
-const GEMINI_MODEL_MAP: Record<string, string> = {
-  "gpt-4o": "gemini-2.0-flash",
-  "sonnet-3.5": "gemini-1.5-pro",
-  mini: "gemini-1.5-flash",
-};
-
-const SUMMARY_STYLE_COPY: Record<string, string> = {
-  short:
-    "Provide a concise summary (2-3 sentences) highlighting the top insights.",
-  medium:
-    "Provide a medium-length summary (3-5 bullet sentences) covering the main sections and key takeaways.",
-  long: "Provide a detailed summary (6+ sentences) including context, supporting points, and any action items discussed.",
-};
-
-const MAX_TRANSCRIPT_CHARACTERS = 6000;
-
-const API_KEY_STORAGE_KEY = "googleAIStudioApiKey";
-const GOOGLE_API_KEY_URL = "https://aistudio.google.com/app/apikey";
-
-// ============================================================================
-// COMPONENT
-// ============================================================================
+const renderSelect = (
+  label: string,
+  value: string,
+  onChange: (next: string) => void,
+  options: { label: string; value: string }[]
+) => (
+  <label style={inputLabelStyle}>
+    {label}
+    <select
+      style={selectStyle}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  </label>
+);
 
 /**
  * Main Widget component.
@@ -374,46 +90,18 @@ export default function Widget() {
   const [activeView, setActiveView] = useState<ActiveView>(null);
   const [summaryCache, setSummaryCache] = useState<Record<string, string>>({});
 
-  const getModelId = () =>
-    GEMINI_MODEL_MAP[model] ?? GEMINI_MODEL_MAP["gpt-4o"];
-
-  const getLanguageLabel = () =>
-    languages.find((entry) => entry.value === language)?.label ?? "English";
-
-  const buildSummaryPrompt = (transcriptText: string) => {
-    const lengthInstruction =
-      SUMMARY_STYLE_COPY[length] ?? SUMMARY_STYLE_COPY.medium;
-    return [
-      `You are summarizing a YouTube video transcript in ${getLanguageLabel()}.`,
-      lengthInstruction,
-      "Focus on the main narrative arc, important data points, and any explicit recommendations.",
-      "Transcript:",
-      `"""${transcriptText}"""`,
-    ].join("\n\n");
-  };
-
-  const reduceTranscript = (segments: TranscriptSegment[]) => {
-    const combined = segments.map((segment) => segment.text ?? "").join(" ");
-    if (combined.length <= MAX_TRANSCRIPT_CHARACTERS) return combined;
-    return combined.slice(-MAX_TRANSCRIPT_CHARACTERS);
-  };
-
+  // Load API key from storage on mount
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const storedKey = window.localStorage.getItem(API_KEY_STORAGE_KEY);
+    const storedKey = getStoredApiKey();
     if (storedKey) {
       setApiKey(storedKey);
       setApiKeyInput(storedKey);
     }
   }, []);
 
-  const persistApiKey = (value: string) => {
-    if (typeof window === "undefined") return;
-    if (value) {
-      window.localStorage.setItem(API_KEY_STORAGE_KEY, value);
-    } else {
-      window.localStorage.removeItem(API_KEY_STORAGE_KEY);
-    }
+  const handleApiKeyInputChange = (value: string) => {
+    setApiKeyInput(value);
+    setApiKeyNotice(null);
   };
 
   const handleSaveApiKey = () => {
@@ -422,13 +110,13 @@ export default function Widget() {
       setApiKeyNotice("Please paste a Google AI Studio API key to continue.");
       return;
     }
-    persistApiKey(trimmed);
+    saveApiKey(trimmed);
     setApiKey(trimmed);
     setApiKeyNotice("API key saved. You can update it anytime.");
   };
 
   const handleResetApiKey = () => {
-    persistApiKey("");
+    removeApiKey();
     setApiKey("");
     setApiKeyInput("");
     setApiKeyNotice(null);
@@ -440,67 +128,9 @@ export default function Widget() {
     setSummaryCache({});
   };
 
-  /**
-   * Extracts a video ID from the current URL.
-   * Handles both standard watch URLs and youtu.be short links.
-   */
-  const extractCurrentVideoId = () => {
-    try {
-      const url = new URL(window.location.href);
-      const paramId = url.searchParams.get("v");
-      if (paramId) return paramId;
-    } catch {
-      // Ignore URL parsing failures and fall back to regex.
-    }
-    const match = window.location.href.match(
-      /(?:v=|\/|v\/|embed\/|watch\?.*v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/
-    );
-    return match?.[1];
-  };
-
-  /**
-   * Formats transcript timestamps into mm:ss for readability.
-   */
-  const formatTimestamp = (offset: number) => {
-    const totalSeconds = Math.floor(offset);
-    const minutes = Math.floor(totalSeconds / 60)
-      .toString()
-      .padStart(2, "0");
-    const seconds = (totalSeconds % 60).toString().padStart(2, "0");
-    return `${minutes}:${seconds}`;
-  };
-
-  const fetchTranscriptForVideo = async (): Promise<TranscriptSegment[]> => {
-    const videoId = extractCurrentVideoId();
-    if (!videoId) {
-      throw new Error("Unable to detect the current video.");
-    }
-    return fetchTranscript(videoId, { lang: language });
-  };
-
-  const refreshTranscriptState = async () => {
-    const transcript = await fetchTranscriptForVideo();
-    setTranscriptSegments(transcript);
-    setTranscriptLocale(language);
-    return transcript;
-  };
-
   const transcriptMatchesLanguage =
     transcriptSegments.length > 0 && transcriptLocale === language;
 
-  const buildSummaryCacheKey = (videoId: string) =>
-    [videoId, language, length, model].join("|");
-
-  const ensureTranscriptForSummary = async () => {
-    if (transcriptMatchesLanguage) {
-      return transcriptSegments;
-    }
-    return refreshTranscriptState();
-  };
-
-  /**
-   * Handles click on the Transcript button by fetching and storing transcript data.
-   */
   const handleTranscriptClick = async () => {
     if (isTranscriptLoading) return;
     if (!apiKey) {
@@ -528,7 +158,9 @@ export default function Widget() {
     setIsTranscriptLoading(true);
 
     try {
-      const transcript = await refreshTranscriptState();
+      const transcript = await fetchTranscriptForVideo(language);
+      setTranscriptSegments(transcript);
+      setTranscriptLocale(language);
       if (!transcript.length) {
         setTranscriptError("Transcript was empty for this video.");
       }
@@ -559,7 +191,7 @@ export default function Widget() {
       return;
     }
 
-    const cacheKey = buildSummaryCacheKey(videoId);
+    const cacheKey = buildSummaryCacheKey(videoId, language, length, model);
     setActiveView("summary");
     setIsSummaryLoading(true);
     setSummaryError(null);
@@ -571,42 +203,21 @@ export default function Widget() {
     }
 
     try {
-      const transcript = await ensureTranscriptForSummary();
-      if (!transcript.length) {
-        setSummary(null);
-        setSummaryError("Transcript is empty. Try fetching captions first.");
-        return;
+      // Ensure we have transcript
+      let transcript = transcriptSegments;
+      if (!transcriptMatchesLanguage) {
+        transcript = await fetchTranscriptForVideo(language);
+        setTranscriptSegments(transcript);
+        setTranscriptLocale(language);
       }
 
-      const ai = new GoogleGenAI({ apiKey });
-      const prompt = buildSummaryPrompt(reduceTranscript(transcript));
-      const response = await ai.models.generateContent({
-        model: getModelId(),
-        contents: prompt,
-        config: {
-          maxOutputTokens: length === "long" ? 1024 : 512,
-          temperature: 0.7,
-        },
-      });
-
-      const inlineText = response.text?.trim();
-      const fallbackText =
-        response.candidates?.[0]?.content?.parts
-          ?.map((part) =>
-            typeof part === "object" &&
-            part !== null &&
-            "text" in part &&
-            typeof (part as { text?: unknown }).text === "string"
-              ? ((part as { text?: string }).text as string)
-              : ""
-          )
-          .join(" ")
-          .trim() ?? "";
-
-      const finalSummary = inlineText || fallbackText;
-      if (!finalSummary) {
-        throw new Error("Gemini returned an empty response.");
-      }
+      const finalSummary = await generateSummary(
+        apiKey,
+        transcript,
+        model,
+        language,
+        length
+      );
       setSummary(finalSummary);
       setSummaryCache((previous) => ({
         ...previous,
@@ -623,37 +234,6 @@ export default function Widget() {
       setIsSummaryLoading(false);
     }
   };
-
-  /**
-   * Helper function to render a labeled dropdown select.
-   *
-   * @param label - Display label for the select
-   * @param value - Current selected value
-   * @param onChange - Callback when selection changes
-   * @param options - Array of {label, value} options
-   * @returns JSX for a labeled select element
-   */
-  const renderSelect = (
-    label: string,
-    value: string,
-    onChange: (next: string) => void,
-    options: { label: string; value: string }[]
-  ) => (
-    <label style={inputLabelStyle}>
-      {label}
-      <select
-        style={selectStyle}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
 
   const renderSummaryPanel = () => (
     <div style={summarySectionStyle}>
@@ -763,8 +343,7 @@ export default function Widget() {
             type="password"
             value={apiKeyInput}
             onChange={(event) => {
-              setApiKeyInput(event.target.value);
-              setApiKeyNotice(null);
+              handleApiKeyInputChange(event.target.value);
             }}
           />
           <div style={gateActionsStyle}>
