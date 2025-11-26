@@ -173,6 +173,14 @@ export const transcriptTimestampStyle: CSSProperties = {
   letterSpacing: "0.08em",
   textTransform: "uppercase",
   marginBottom: "4px",
+  cursor: "pointer",
+  transition: "color 0.2s ease, opacity 0.2s ease",
+  userSelect: "none",
+};
+
+export const transcriptTimestampHoverStyle: CSSProperties = {
+  ...transcriptTimestampStyle,
+  color: "rgba(255,255,255,0.9)",
 };
 
 export const transcriptMessageStyle: CSSProperties = {

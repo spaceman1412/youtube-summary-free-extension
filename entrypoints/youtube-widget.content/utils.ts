@@ -43,3 +43,60 @@ export const reduceTranscript = (segments: TranscriptSegment[]): string => {
   if (combined.length <= MAX_TRANSCRIPT_CHARACTERS) return combined;
   return combined.slice(-MAX_TRANSCRIPT_CHARACTERS);
 };
+
+/**
+ * Seeks the YouTube video player to a specific timestamp.
+ * Tries multiple methods to find and control the video player.
+ */
+export const seekToTimestamp = (offset: number): void => {
+  try {
+    // Method 1: Try YouTube's internal player API (if available)
+    // YouTube stores player instances in various places depending on the page structure
+    const ytPlayer = (window as any).ytplayer;
+    if (ytPlayer && ytPlayer.getPlayerByElement) {
+      const playerElements = document.querySelectorAll("video");
+      for (const videoEl of playerElements) {
+        try {
+          const player = ytPlayer.getPlayerByElement(videoEl);
+          if (player && typeof player.seekTo === "function") {
+            player.seekTo(offset, true);
+            return;
+          }
+        } catch {
+          // Continue to next method
+        }
+      }
+    }
+
+    // Method 2: Try accessing YouTube's global player state
+    const ytInitialPlayerResponse = (window as any).ytInitialPlayerResponse;
+    if (ytInitialPlayerResponse) {
+      // Try to find the player through YouTube's internal structure
+      const playerContainer = document.querySelector("#movie_player");
+      if (playerContainer) {
+        const player = (playerContainer as any).getVideoData?.();
+        if (player && typeof (playerContainer as any).seekTo === "function") {
+          (playerContainer as any).seekTo(offset, true);
+          return;
+        }
+      }
+    }
+
+    // Method 3: Direct HTML5 video element manipulation (fallback)
+    const videoElement = document.querySelector("video") as HTMLVideoElement;
+    if (videoElement) {
+      videoElement.currentTime = offset;
+      return;
+    }
+
+    // Method 4: Try to dispatch a custom event that YouTube might listen to
+    // Some YouTube extensions use this pattern
+    const seekEvent = new CustomEvent("seekTo", { detail: { time: offset } });
+    document.dispatchEvent(seekEvent);
+
+    // If all methods fail, log a warning (but don't throw to avoid breaking the UI)
+    console.warn("Could not find YouTube player to seek to timestamp:", offset);
+  } catch (error) {
+    console.error("Error seeking to timestamp:", error);
+  }
+};

@@ -24,6 +24,7 @@ import {
   transcriptListStyle,
   transcriptItemStyle,
   transcriptTimestampStyle,
+  transcriptTimestampHoverStyle,
   transcriptMessageStyle,
   transcriptErrorStyle,
   iconButtonStyle,
@@ -43,7 +44,11 @@ import {
   chatInputStyle,
   chatSendButtonStyle,
 } from "./styles";
-import { formatTimestamp, extractCurrentVideoId } from "./utils";
+import {
+  formatTimestamp,
+  extractCurrentVideoId,
+  seekToTimestamp,
+} from "./utils";
 import { fetchTranscriptForVideo } from "./transcriptService";
 import { generateSummary, buildSummaryCacheKey } from "./summaryService";
 import { generateChatResponse } from "./chatService";
@@ -106,6 +111,7 @@ export default function Widget() {
   const currentVideoIdRef = useRef<string | undefined>(undefined);
   const previousMessageCountRef = useRef<number>(0);
   const isUserScrollingRef = useRef<boolean>(false);
+  const [hoveredTimestamp, setHoveredTimestamp] = useState<number | null>(null);
 
   // Load API key from storage on mount
   useEffect(() => {
@@ -464,7 +470,30 @@ export default function Widget() {
         <div style={transcriptListStyle}>
           {transcriptSegments.map((segment, index) => (
             <div key={`${segment.offset}-${index}`} style={transcriptItemStyle}>
-              <span style={transcriptTimestampStyle}>
+              <span
+                style={
+                  hoveredTimestamp === segment.offset
+                    ? transcriptTimestampHoverStyle
+                    : transcriptTimestampStyle
+                }
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  seekToTimestamp(segment.offset);
+                }}
+                onMouseEnter={() => setHoveredTimestamp(segment.offset)}
+                onMouseLeave={() => setHoveredTimestamp(null)}
+                role="button"
+                tabIndex={0}
+                aria-label={`Seek to ${formatTimestamp(segment.offset)}`}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    seekToTimestamp(segment.offset);
+                  }
+                }}
+              >
                 {formatTimestamp(segment.offset)}
               </span>
               <span>{segment.text || "…"}</span>
