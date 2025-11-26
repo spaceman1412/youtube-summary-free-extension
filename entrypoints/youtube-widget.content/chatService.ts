@@ -12,7 +12,7 @@ import { getLanguageLabel } from "./summaryService";
  * Gets the Gemini model ID from the user-selected model
  */
 function getModelId(model: string): string {
-  return GEMINI_MODEL_MAP[model] ?? GEMINI_MODEL_MAP["gpt-4o"];
+  return GEMINI_MODEL_MAP[model] ?? GEMINI_MODEL_MAP["gemini-2.5-flash"];
 }
 
 /**

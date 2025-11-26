@@ -4,10 +4,7 @@
 
 import { GoogleGenAI } from "@google/genai";
 import type { TranscriptSegment } from "./types";
-import {
-  GEMINI_MODEL_MAP,
-  SUMMARY_STYLE_COPY,
-} from "./constants";
+import { GEMINI_MODEL_MAP, SUMMARY_STYLE_COPY } from "./constants";
 import { reduceTranscript } from "./utils";
 import { languages } from "./constants";
 
@@ -15,14 +12,16 @@ import { languages } from "./constants";
  * Gets the Gemini model ID from the user-selected model
  */
 export function getModelId(model: string): string {
-  return GEMINI_MODEL_MAP[model] ?? GEMINI_MODEL_MAP["gpt-4o"];
+  return GEMINI_MODEL_MAP[model] ?? GEMINI_MODEL_MAP["gemini-2.5-flash"];
 }
 
 /**
  * Gets the language label from the language value
  */
 export function getLanguageLabel(language: string): string {
-  return languages.find((entry) => entry.value === language)?.label ?? "English";
+  return (
+    languages.find((entry) => entry.value === language)?.label ?? "English"
+  );
 }
 
 /**
@@ -61,7 +60,11 @@ export async function generateSummary(
   }
 
   const ai = new GoogleGenAI({ apiKey });
-  const prompt = buildSummaryPrompt(reduceTranscript(transcript), language, length);
+  const prompt = buildSummaryPrompt(
+    reduceTranscript(transcript),
+    language,
+    length
+  );
   const response = await ai.models.generateContent({
     model: getModelId(model),
     contents: prompt,
@@ -104,4 +107,3 @@ export function buildSummaryCacheKey(
 ): string {
   return [videoId, language, length, model].join("|");
 }
-

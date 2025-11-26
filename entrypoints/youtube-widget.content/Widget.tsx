@@ -5,7 +5,12 @@
  */
 
 import { useEffect, useState, useRef } from "react";
-import type { TranscriptSegment, ActiveView, ChatMessage } from "./types";
+import type {
+  TranscriptSegment,
+  ActiveView,
+  ChatMessage,
+  ModelOption,
+} from "./types";
 import { languages, models, lengths, GOOGLE_API_KEY_URL } from "./constants";
 import {
   cardStyle,
@@ -43,6 +48,14 @@ import {
   chatInputContainerStyle,
   chatInputStyle,
   chatSendButtonStyle,
+  modelDescriptionStyle,
+  customSelectContainerStyle,
+  customSelectButtonStyle,
+  customSelectDropdownStyle,
+  customSelectOptionStyle,
+  customSelectOptionHoverStyle,
+  customSelectOptionLabelStyle,
+  customSelectOptionDescriptionStyle,
 } from "./styles";
 import {
   formatTimestamp,
@@ -81,13 +94,124 @@ const renderSelect = (
 );
 
 /**
+ * Custom dropdown component for models with descriptions
+ */
+const CustomModelSelect = ({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (next: string) => void;
+  options: ModelOption[];
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const selectedOption = options.find((opt) => opt.value === value);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [isOpen]);
+
+  return (
+    <label style={inputLabelStyle}>
+      {label}
+      <div style={customSelectContainerStyle} ref={containerRef}>
+        <button
+          type="button"
+          style={customSelectButtonStyle}
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {selectedOption?.label || "Select model"}
+        </button>
+        {isOpen && (
+          <div style={customSelectDropdownStyle}>
+            {options.map((option) => {
+              const isSelected = option.value === value;
+              return (
+                <div
+                  key={option.value}
+                  style={
+                    isSelected
+                      ? customSelectOptionHoverStyle
+                      : customSelectOptionStyle
+                  }
+                  onClick={() => {
+                    onChange(option.value);
+                    setIsOpen(false);
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.background =
+                        "rgba(255,255,255,0.05)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.background = "transparent";
+                    }
+                  }}
+                >
+                  <div style={customSelectOptionLabelStyle}>{option.label}</div>
+                  {option.description && (
+                    <div style={customSelectOptionDescriptionStyle}>
+                      {option.description}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </label>
+  );
+};
+
+/**
+ * Helper function to render a labeled dropdown select with description (for models).
+ */
+const renderModelSelect = (
+  label: string,
+  value: string,
+  onChange: (next: string) => void,
+  options: ModelOption[]
+) => {
+  return (
+    <CustomModelSelect
+      label={label}
+      value={value}
+      onChange={onChange}
+      options={options}
+    />
+  );
+};
+
+/**
  * Main Widget component.
  * Manages user preferences (language, model, length) and renders the UI.
  */
 export default function Widget() {
   // State for user-selected options
   const [language, setLanguage] = useState(languages[0]?.value ?? "en");
-  const [model, setModel] = useState(models[0]?.value ?? "gpt-4o");
+  const [model, setModel] = useState(models[0]?.value ?? "gemini-2.5-flash");
   const [length, setLength] = useState(lengths[1]?.value ?? "medium");
   const [transcriptSegments, setTranscriptSegments] = useState<
     TranscriptSegment[]
@@ -754,7 +878,7 @@ export default function Widget() {
         {/* Dropdown selectors for configuration */}
         <div style={pickerRowStyle}>
           {renderSelect("Language", language, setLanguage, languages)}
-          {renderSelect("Model", model, setModel, models)}
+          {renderModelSelect("Model", model, setModel, models)}
           {renderSelect("Length", length, setLength, lengths)}
         </div>
 

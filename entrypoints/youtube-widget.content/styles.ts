@@ -366,3 +366,78 @@ export const chatSendButtonStyle: CSSProperties = {
   padding: "10px 16px",
   borderRadius: "10px",
 };
+
+export const modelDescriptionStyle: CSSProperties = {
+  fontSize: "9px",
+  color: "rgba(255,255,255,0.5)",
+  marginTop: "2px",
+  lineHeight: 1.3,
+  fontStyle: "italic",
+};
+
+export const customSelectContainerStyle: CSSProperties = {
+  position: "relative",
+  width: "100%",
+};
+
+export const customSelectButtonStyle: CSSProperties = {
+  minWidth: "100px",
+  width: "100%",
+  borderRadius: "10px",
+  border: "none",
+  padding: "10px 12px",
+  background: "rgba(255,255,255,0.08)",
+  color: "#f5f5f5",
+  fontWeight: "500",
+  fontSize: "12px",
+  appearance: "none",
+  outline: "none",
+  transition: "background 0.2s ease",
+  cursor: "pointer",
+  textAlign: "left",
+};
+
+export const customSelectDropdownStyle: CSSProperties = {
+  position: "absolute",
+  top: "100%",
+  left: 0,
+  right: 0,
+  marginTop: "4px",
+  borderRadius: "10px",
+  border: "1px solid rgba(255,255,255,0.15)",
+  background: "#050505",
+  boxShadow: "0 8px 24px rgba(0,0,0,0.8)",
+  zIndex: 1000,
+  maxHeight: "240px",
+  overflowY: "auto",
+  display: "flex",
+  flexDirection: "column",
+};
+
+export const customSelectOptionStyle: CSSProperties = {
+  padding: "5px 10px",
+  cursor: "pointer",
+  borderBottom: "1px solid rgba(255,255,255,0.05)",
+  transition: "background 0.2s ease",
+};
+
+export const customSelectOptionHoverStyle: CSSProperties = {
+  ...customSelectOptionStyle,
+  background: "rgba(255,255,255,0.08)",
+};
+
+export const customSelectOptionLabelStyle: CSSProperties = {
+  fontSize: "8px",
+  fontWeight: "500",
+  color: "#f5f5f5",
+  marginBottom: "1px",
+  lineHeight: 1.2,
+};
+
+export const customSelectOptionDescriptionStyle: CSSProperties = {
+  fontSize: "6px",
+  color: "rgba(255,255,255,0.65)",
+  lineHeight: 1.3,
+  fontWeight: "400",
+  textTransform: "none",
+};

@@ -17,9 +17,31 @@ export const languages: LanguageOption[] = [
  * Available AI models for summary generation
  */
 export const models: ModelOption[] = [
-  { label: "GPT-4o", value: "gpt-4o" },
-  { label: "Sonnet 3.5", value: "sonnet-3.5" },
-  { label: "Mini", value: "mini" },
+  {
+    label: "Gemini 2.5 Pro",
+    value: "gemini-2.5-pro",
+    description: "A Gemini model designed for complex reasoning.",
+  },
+  {
+    label: "Gemini 2.5 Flash",
+    value: "gemini-2.5-flash",
+    description: "A Gemini model offering a balance of price and performance.",
+  },
+  {
+    label: "Gemini 2.5 Flash-Lite",
+    value: "gemini-2.5-flash-lite",
+    description: "A cost-effective Gemini model that supports high-throughput tasks.",
+  },
+  {
+    label: "Gemini 2.0 Flash",
+    value: "gemini-2.0-flash",
+    description: "A Gemini 2.0 model offering well-rounded capabilities with a focus on price-performance.",
+  },
+  {
+    label: "Gemini 2.0 Flash-Lite",
+    value: "gemini-2.0-flash-lite",
+    description: "A Gemini 2.0 Flash model optimized for cost efficiency and low latency.",
+  },
 ];
 
 /**
@@ -32,9 +54,11 @@ export const lengths: LengthOption[] = [
 ];
 
 export const GEMINI_MODEL_MAP: Record<string, string> = {
-  "gpt-4o": "gemini-2.0-flash",
-  "sonnet-3.5": "gemini-1.5-pro",
-  mini: "gemini-1.5-flash",
+  "gemini-2.5-pro": "gemini-2.5-pro",
+  "gemini-2.5-flash": "gemini-2.5-flash",
+  "gemini-2.5-flash-lite": "gemini-2.5-flash-lite",
+  "gemini-2.0-flash": "gemini-2.0-flash",
+  "gemini-2.0-flash-lite": "gemini-2.0-flash-lite",
 };
 
 export const SUMMARY_STYLE_COPY: Record<string, string> = {

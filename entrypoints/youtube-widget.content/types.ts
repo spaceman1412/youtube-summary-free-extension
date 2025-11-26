@@ -22,6 +22,7 @@ export type LanguageOption = {
 export type ModelOption = {
   label: string;
   value: string;
+  description?: string;
 };
 
 export type LengthOption = {
