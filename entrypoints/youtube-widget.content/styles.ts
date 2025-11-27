@@ -208,7 +208,7 @@ export const transcriptSectionStyle: CSSProperties = {
   borderRadius: "8px",
   border: "none",
   padding: "0",
-  maxHeight: "220px",
+  maxHeight: "300px",
   overflowY: "auto",
 };
 

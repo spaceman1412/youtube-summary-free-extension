@@ -30,15 +30,21 @@ export function useTranscript() {
       setTranscriptErrorMessage(null);
 
       try {
+        // fetchTranscriptForVideo now handles fallback internally:
+        // tries language-specific first, then falls back to default transcript
         const transcript = await fetchTranscriptForVideo(language);
-        setSegments(transcript);
-        setLocale(language);
 
-        if (!transcript.length) {
+        // Validate that we got a non-empty transcript
+        if (!transcript || transcript.length === 0) {
           const message = "Transcript was empty for this video.";
           setTranscriptErrorMessage(message);
           throw new Error(message);
         }
+
+        // Set segments and locale (locale is set to requested language,
+        // even if the actual transcript content is from the default language)
+        setSegments(transcript);
+        setLocale(language);
 
         return transcript;
       } catch (error) {
