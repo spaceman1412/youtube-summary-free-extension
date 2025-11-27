@@ -1,42 +1,105 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+.popup-root {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  min-height: 100%;
+}
+
+.popup-card {
+  width: 100%;
+  background: #0a0a0a;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 18px;
+  color: #f5f5f5;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.popup-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.popup-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.popup-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.popup-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.popup-title {
+  font-size: 18px;
+  margin: 0;
+  color: #ffffff;
+}
+
+.popup-description {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.popup-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.popup-button {
+  flex: 1;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.popup-button--primary {
+  background: linear-gradient(135deg, #fbcf33, #f55555);
+  color: #0a0a0a;
+  border: none;
+  box-shadow: 0 8px 20px rgba(245, 86, 85, 0.35);
+}
+
+.popup-button--ghost {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f5f5f5;
+}
+
+.popup-button:hover {
+  transform: translateY(-1px);
+}
+
+.popup-helper {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
   text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #54bc4ae0);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
 }
