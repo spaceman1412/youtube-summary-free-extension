@@ -8,6 +8,7 @@
 import { createRoot } from "react-dom/client";
 import Widget from "./Widget";
 import { fetchTranscript } from "youtube-transcript-plus";
+import "./youtube-widget.css";
 
 // CSS selector for YouTube's secondary sidebar (where video recommendations appear)
 const TARGET_SELECTOR = "#secondary";
