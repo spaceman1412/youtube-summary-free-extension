@@ -4,6 +4,7 @@
  * along with action buttons for Summary, Transcript, and Chat features.
  */
 
+import ReactMarkdown from "react-markdown";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ActiveView, ChatMessage, ModelOption } from "./types";
 import { languages, models, lengths, GOOGLE_API_KEY_URL } from "./constants";
@@ -552,35 +553,53 @@ export default function Widget() {
     return <>{elements}</>;
   };
 
-  const renderSummaryPanel = () => (
-    <div style={summarySectionStyle}>
-      {isSummaryLoading && (
-        <div style={transcriptMessageStyle}>Generating summary…</div>
-      )}
-      {!isSummaryLoading && summaryError && (
-        <div style={transcriptErrorStyle}>{summaryError}</div>
-      )}
-      {!isSummaryLoading && !summaryError && summary && (
-        <div style={summaryTextStyle}>
-          {summary
-            .split("\n")
-            .filter((line) => line.trim().length > 0)
-            .map((line, index) => (
-              <p
-                key={`${line}-${index}`}
-                style={{
-                  margin: 0,
-                  marginBottom: "8px",
-                  whiteSpace: "pre-wrap",
-                }}
-              >
-                {renderTextWithTimestamps(line, index)}
-              </p>
-            ))}
-        </div>
-      )}
-    </div>
-  );
+  const renderSummaryPanel = () => {
+    let textNodeIndex = 0;
+
+    return (
+      <div style={summarySectionStyle}>
+        {isSummaryLoading && (
+          <div style={transcriptMessageStyle}>Generating summary…</div>
+        )}
+        {!isSummaryLoading && summaryError && (
+          <div style={transcriptErrorStyle}>{summaryError}</div>
+        )}
+        {!isSummaryLoading && !summaryError && summary && (
+          <div style={summaryTextStyle}>
+            <ReactMarkdown
+              components={{
+                p: ({ children }) => (
+                  <p
+                    style={{
+                      margin: 0,
+                      marginBottom: "8px",
+                      whiteSpace: "pre-wrap",
+                    }}
+                  >
+                    {children}
+                  </p>
+                ),
+                text: ({ children }) => {
+                  const textContent =
+                    typeof children === "string"
+                      ? children
+                      : Array.isArray(children)
+                      ? children.join("")
+                      : "";
+                  const currentIndex = textNodeIndex++;
+                  return (
+                    <>{renderTextWithTimestamps(textContent, currentIndex)}</>
+                  );
+                },
+              }}
+            >
+              {summary}
+            </ReactMarkdown>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const renderTranscriptPanel = () => (
     <div style={transcriptSectionStyle}>
@@ -620,7 +639,15 @@ export default function Widget() {
               >
                 {formatTimestamp(segment.offset)}
               </span>
-              <span>{segment.text || "…"}</span>
+              <ReactMarkdown
+                components={{
+                  p: ({ children }) => (
+                    <span style={{ whiteSpace: "pre-wrap" }}>{children}</span>
+                  ),
+                }}
+              >
+                {segment.text || "…"}
+              </ReactMarkdown>
             </div>
           ))}
         </div>
@@ -654,7 +681,19 @@ export default function Widget() {
                 : chatMessageAssistantStyle
             }
           >
-            {message.content}
+            {message.role === "assistant" ? (
+              <ReactMarkdown
+                components={{
+                  p: ({ children }) => (
+                    <p style={{ margin: 0, marginBottom: "8px" }}>{children}</p>
+                  ),
+                }}
+              >
+                {message.content}
+              </ReactMarkdown>
+            ) : (
+              message.content
+            )}
           </div>
         ))}
         {isChatLoading && <div style={transcriptMessageStyle}>Thinking…</div>}

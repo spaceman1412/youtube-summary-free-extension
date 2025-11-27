@@ -66,8 +66,6 @@ export async function generateSummary(
     length
   );
 
-  console.log("prompt", prompt);
-  console.log("model", getModelId(model));
   const response = await ai.models.generateContent({
     model: getModelId(model),
     contents: prompt,

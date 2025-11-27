@@ -408,7 +408,6 @@ export const chatMessagesStyle: CSSProperties = {
   gap: "6px",
   flex: 1,
   minHeight: "80px",
-  maxHeight: "220px",
   overflowY: "auto",
   overflowX: "hidden",
   padding: "8px 4px",
