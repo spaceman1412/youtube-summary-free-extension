@@ -5,6 +5,7 @@ A completely free, open-source extension powered by Google Gemini (bring your ow
 ## Features
 
 - **Lives inside the video page** so your summary appears next to the player—no extra tabs, no copy/paste.
+- **No login required**—just install the extension and start summarizing instantly.
 - **One-click summary button** that instantly recaps the video with clickable timestamps.
 - **Powered by the latest Gemini models** (you choose the model) so results feel fast and up-to-date.
 - **Use the free Google AI Studio key that comes with every Google account**—paste it once, we keep it safe in your browser, and you stay in control.

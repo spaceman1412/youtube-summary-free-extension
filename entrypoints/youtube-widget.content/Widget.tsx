@@ -5,7 +5,16 @@
  */
 
 import ReactMarkdown from "react-markdown";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Children,
+  cloneElement,
+  isValidElement,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import type { ReactNode } from "react";
 import type { ActiveView, ChatMessage, ModelOption } from "./types";
 import { languages, models, lengths, GOOGLE_API_KEY_URL } from "./constants";
 import {
@@ -555,6 +564,29 @@ export default function Widget() {
 
   const renderSummaryPanel = () => {
     let textNodeIndex = 0;
+    const renderContentWithTimestamps = (
+      nodeChildren: ReactNode
+    ): ReactNode => {
+      return Children.map(nodeChildren, (child) => {
+        if (child === null || child === undefined) {
+          return child;
+        }
+        if (typeof child === "string" || typeof child === "number") {
+          const currentIndex = textNodeIndex++;
+          return renderTextWithTimestamps(String(child), currentIndex);
+        }
+        if (
+          isValidElement<{ children?: ReactNode }>(child) &&
+          child.props.children
+        ) {
+          return cloneElement(child, {
+            ...child.props,
+            children: renderContentWithTimestamps(child.props.children),
+          });
+        }
+        return child;
+      });
+    };
 
     return (
       <div style={summarySectionStyle}>
@@ -576,21 +608,12 @@ export default function Widget() {
                       whiteSpace: "pre-wrap",
                     }}
                   >
-                    {children}
+                    {renderContentWithTimestamps(children)}
                   </p>
                 ),
-                text: ({ children }) => {
-                  const textContent =
-                    typeof children === "string"
-                      ? children
-                      : Array.isArray(children)
-                      ? children.join("")
-                      : "";
-                  const currentIndex = textNodeIndex++;
-                  return (
-                    <>{renderTextWithTimestamps(textContent, currentIndex)}</>
-                  );
-                },
+                li: ({ children }) => (
+                  <li>{renderContentWithTimestamps(children)}</li>
+                ),
               }}
             >
               {summary}

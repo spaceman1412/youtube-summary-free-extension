@@ -217,16 +217,18 @@ export const summarySectionStyle: CSSProperties = {
   borderRadius: "8px",
   border: "none",
   padding: "0",
-  maxHeight: "280px",
+  maxHeight: "320px",
   overflowY: "auto",
 };
 
 export const summaryTextStyle: CSSProperties = {
-  fontSize: "12px",
-  lineHeight: 1.6,
-  color: "rgba(255,255,255,0.8)",
+  fontSize: "14px",
+  lineHeight: 1.8,
+  color: "rgba(255,255,255,0.92)",
   textAlign: "left",
-  padding: "8px 4px",
+  padding: "12px 6px",
+  letterSpacing: "0.01em",
+  wordBreak: "break-word",
 };
 
 export const transcriptListStyle: CSSProperties = {
