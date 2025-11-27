@@ -10,34 +10,36 @@ import type { LanguageOption, ModelOption, LengthOption } from "./types";
  */
 export const languages: LanguageOption[] = [
   { label: "Afrikaans", value: "af" },
-  { label: "Shqip", value: "sq" }, // Albanian
   { label: "አማርኛ", value: "am" }, // Amharic
   { label: "العربية", value: "ar" }, // Arabic
   { label: "Azərbaycan", value: "az" }, // Azerbaijani
+  { label: "Bahasa Indonesia", value: "id" }, // Indonesian
+  { label: "Bahasa Melayu", value: "ms" }, // Malay
   { label: "বাংলা", value: "bn" }, // Bengali
   { label: "Беларуская", value: "be" }, // Belarusian
   { label: "Bosanski", value: "bs" }, // Bosnian
   { label: "Български", value: "bg" }, // Bulgarian
   { label: "Català", value: "ca" }, // Catalan
   { label: "中文", value: "zh" }, // Chinese
-  { label: "Hrvatski", value: "hr" }, // Croatian
+  { label: "Cymraeg", value: "cy" }, // Welsh
   { label: "Čeština", value: "cs" }, // Czech
   { label: "Dansk", value: "da" }, // Danish
-  { label: "Nederlands", value: "nl" }, // Dutch
-  { label: "English", value: "en" },
+  { label: "Deutsch", value: "de" }, // German
   { label: "Eesti", value: "et" }, // Estonian
+  { label: "English", value: "en" },
+  { label: "Español", value: "es" }, // Spanish
   { label: "Suomi", value: "fi" }, // Finnish
   { label: "Français", value: "fr" }, // French
+  { label: "Gaeilge", value: "ga" }, // Irish
   { label: "ქართული", value: "ka" }, // Georgian
-  { label: "Deutsch", value: "de" }, // German
   { label: "Ελληνικά", value: "el" }, // Greek
   { label: "ગુજરાતી", value: "gu" }, // Gujarati
   { label: "עברית", value: "he" }, // Hebrew
   { label: "हिन्दी", value: "hi" }, // Hindi
+  { label: "Hrvatski", value: "hr" }, // Croatian
   { label: "Magyar", value: "hu" }, // Hungarian
   { label: "Íslenska", value: "is" }, // Icelandic
-  { label: "Bahasa Indonesia", value: "id" }, // Indonesian
-  { label: "Gaeilge", value: "ga" }, // Irish
+  { label: "isiZulu", value: "zu" }, // Zulu
   { label: "Italiano", value: "it" }, // Italian
   { label: "日本語", value: "ja" }, // Japanese
   { label: "ಕನ್ನಡ", value: "kn" }, // Kannada
@@ -49,27 +51,27 @@ export const languages: LanguageOption[] = [
   { label: "Latviešu", value: "lv" }, // Latvian
   { label: "Lietuvių", value: "lt" }, // Lithuanian
   { label: "Македонски", value: "mk" }, // Macedonian
-  { label: "Bahasa Melayu", value: "ms" }, // Malay
   { label: "മലയാളം", value: "ml" }, // Malayalam
   { label: "मराठी", value: "mr" }, // Marathi
   { label: "Монгол", value: "mn" }, // Mongolian
   { label: "မြန်မာ", value: "my" }, // Burmese
   { label: "नेपाली", value: "ne" }, // Nepali
+  { label: "Nederlands", value: "nl" }, // Dutch
   { label: "Norsk", value: "no" }, // Norwegian
   { label: "ଓଡ଼ିଆ", value: "or" }, // Odia
   { label: "پښتو", value: "ps" }, // Pashto
-  { label: "فارسی", value: "fa" }, // Persian
+  { label: "ਪੰਜਾਬੀ", value: "pa" }, // Punjabi
   { label: "Polski", value: "pl" }, // Polish
   { label: "Português", value: "pt" }, // Portuguese
-  { label: "ਪੰਜਾਬੀ", value: "pa" }, // Punjabi
+  { label: "فارسی", value: "fa" }, // Persian
   { label: "Română", value: "ro" }, // Romanian
   { label: "Русский", value: "ru" }, // Russian
-  { label: "Српски", value: "sr" }, // Serbian
+  { label: "Shqip", value: "sq" }, // Albanian
   { label: "සිංහල", value: "si" }, // Sinhala
   { label: "Slovenčina", value: "sk" }, // Slovak
   { label: "Slovenščina", value: "sl" }, // Slovenian
   { label: "Soomaali", value: "so" }, // Somali
-  { label: "Español", value: "es" }, // Spanish
+  { label: "Српски", value: "sr" }, // Serbian
   { label: "Kiswahili", value: "sw" }, // Swahili
   { label: "Svenska", value: "sv" }, // Swedish
   { label: "தமிழ்", value: "ta" }, // Tamil
@@ -80,8 +82,6 @@ export const languages: LanguageOption[] = [
   { label: "اردو", value: "ur" }, // Urdu
   { label: "Oʻzbek", value: "uz" }, // Uzbek
   { label: "Tiếng Việt", value: "vi" }, // Vietnamese
-  { label: "Cymraeg", value: "cy" }, // Welsh
-  { label: "isiZulu", value: "zu" }, // Zulu
 ];
 
 /**
