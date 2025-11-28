@@ -6,17 +6,15 @@ A completely free, open-source extension powered by Google Gemini (bring your ow
 
 https://github.com/user-attachments/assets/a3f7da07-c7a7-4697-b423-27a065e639a1
 
-
-
 ## Features
 
-- **Lives inside the video page** so your summary appears next to the player—no extra tabs, no copy/paste.
-- **No login required**—just install the extension and start summarizing instantly.
-- **One-click summary button** that instantly recaps the video with clickable timestamps.
-- **Powered by the latest Gemini models** (you choose the model) so results feel fast and up-to-date.
-- **Use the free Google AI Studio key that comes with every Google account**—paste it once, we keep it safe in your browser, and you stay in control.
-- **Transcript button** that pulls captions automatically and lets you jump to the exact moments mentioned.
-- **Context-aware chat tab** that remembers the whole conversation and uses the video’s transcript to answer follow-up questions naturally.
+- **Built right into the YouTube page** — your summary appears beside the video player. No extra tabs, no copy-paste.
+- **No login, no setup hassle** — install the extension and start summarizing immediately.
+- **Instant one-click summaries** — get a clean recap with clickable timestamps that jump to key moments.
+- **Powered by the latest Gemini models** — choose the model you prefer, and get fast, accurate, up-to-date results.
+- **Uses your free Google AI Studio key** — every Google account has one. Add it once, it stays securely in your browser, and you stay fully in control.
+- **Smart transcript viewer** — pulls captions automatically and lets you jump directly to the moments mentioned.
+- **Context-aware chat** — ask follow-up questions and get answers based on the full transcript and your ongoing conversation.
 
 ## Tech Stack
 
