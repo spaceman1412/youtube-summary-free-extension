@@ -4,7 +4,9 @@ A completely free, open-source extension powered by Google Gemini (bring your ow
 
 ## Demo
 
-<video src="./docs/demo.mp4" controls title="YouTube Summary Extension demo" style="max-width: 100%; border-radius: 8px;"></video>
+https://github.com/user-attachments/assets/a3f7da07-c7a7-4697-b423-27a065e639a1
+
+
 
 ## Features
 
