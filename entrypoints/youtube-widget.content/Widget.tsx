@@ -38,6 +38,7 @@ import {
   transcriptMessageStyle,
   transcriptErrorStyle,
   primaryButtonStyle,
+  secondaryButtonStyle,
   onboardingTitleStyle,
   onboardingDescriptionStyle,
   apiKeyInputStyle,
@@ -283,6 +284,7 @@ export default function Widget() {
   const previousMessageCountRef = useRef<number>(0);
   const isUserScrollingRef = useRef<boolean>(false);
   const [hoveredTimestamp, setHoveredTimestamp] = useState<number | null>(null);
+  const [isCopied, setIsCopied] = useState(false);
 
   const handleResetApiKey = useCallback(() => {
     resetStoredApiKey();
@@ -624,6 +626,27 @@ export default function Widget() {
     );
   };
 
+  const handleCopyTranscript = async () => {
+    if (transcriptSegments.length === 0) return;
+
+    try {
+      // Format transcript with timestamps
+      const formattedText = transcriptSegments
+        .map((segment) => {
+          const timestamp = formatTimestamp(segment.offset);
+          const text = segment.text || "";
+          return `[${timestamp}] ${text}`;
+        })
+        .join("\n");
+
+      await navigator.clipboard.writeText(formattedText);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy transcript:", error);
+    }
+  };
+
   const renderTranscriptPanel = () => (
     <div style={transcriptSectionStyle}>
       {isTranscriptLoading && (
@@ -632,6 +655,32 @@ export default function Widget() {
       {!isTranscriptLoading && transcriptError && (
         <div style={transcriptErrorStyle}>{transcriptError}</div>
       )}
+      {!isTranscriptLoading &&
+        !transcriptError &&
+        transcriptSegments.length > 0 && (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              marginBottom: "8px",
+            }}
+          >
+            <button
+              type="button"
+              onClick={handleCopyTranscript}
+              style={{
+                ...secondaryButtonStyle,
+                padding: "6px 12px",
+                fontSize: "10px",
+                flex: "none",
+                opacity: isCopied ? 0.7 : 1,
+              }}
+              disabled={isCopied}
+            >
+              {isCopied ? "✓ Copied!" : "📋 Copy"}
+            </button>
+          </div>
+        )}
       {!isTranscriptLoading && !transcriptError && (
         <div style={transcriptListStyle}>
           {transcriptSegments.map((segment, index) => (
