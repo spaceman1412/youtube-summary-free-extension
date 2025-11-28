@@ -2,6 +2,10 @@
 
 A completely free, open-source extension powered by Google Gemini (bring your own free AI Studio key) that pops into the YouTube sidebar and delivers instant summaries, transcripts, and chat answers for every video so you can learn faster without leaving the page.
 
+## Demo
+
+<video src="./docs/demo.mp4" controls title="YouTube Summary Extension demo" style="max-width: 100%; border-radius: 8px;"></video>
+
 ## Features
 
 - **Lives inside the video page** so your summary appears next to the player—no extra tabs, no copy/paste.

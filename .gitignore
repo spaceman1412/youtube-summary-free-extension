@@ -26,4 +26,3 @@ web-ext.config.ts
 *.sw?
 
 .cursor
-docs
