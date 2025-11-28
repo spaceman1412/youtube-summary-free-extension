@@ -1,12 +1,5 @@
 import { useMemo, useState } from "react";
-import {
-  summarySectionStyle,
-  summaryTextStyle,
-  transcriptErrorStyle,
-  transcriptMessageStyle,
-  transcriptTimestampHoverStyle,
-  transcriptTimestampStyle,
-} from "../styles";
+import { styles } from "../styles";
 import { formatTimestamp, parseTimestampsFromText, seekToTimestamp } from "../utils";
 
 type SummaryPanelProps = {
@@ -44,8 +37,8 @@ const renderTextWithTimestamps = (
         key={`timestamp-${index}`}
         style={
           hoveredTimestamp === timestampOffset
-            ? transcriptTimestampHoverStyle
-            : transcriptTimestampStyle
+            ? styles.transcript.timestamp.hover
+            : styles.transcript.timestamp.base
         }
         onClick={(event) => {
           event.preventDefault();
@@ -94,13 +87,13 @@ export function SummaryPanel({ summary, isLoading, error }: SummaryPanelProps) {
   }, [summary]);
 
   return (
-    <div style={summarySectionStyle}>
+    <div style={styles.summary.section}>
       {isLoading && (
-        <div style={transcriptMessageStyle}>Generating summary…</div>
+        <div style={styles.common.message}>Generating summary…</div>
       )}
-      {!isLoading && error && <div style={transcriptErrorStyle}>{error}</div>}
+      {!isLoading && error && <div style={styles.common.error}>{error}</div>}
       {!isLoading && !error && summaryLines.length > 0 && (
-        <div style={summaryTextStyle}>
+        <div style={styles.summary.text}>
           {summaryLines.map((line, index) => (
             <p
               key={`${line}-${index}`}

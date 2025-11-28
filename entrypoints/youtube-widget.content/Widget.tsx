@@ -17,52 +17,7 @@ import {
 import type { ReactNode } from "react";
 import type { ActiveView, ChatMessage, ModelOption } from "./types";
 import { languages, models, lengths, GOOGLE_API_KEY_URL } from "./constants";
-import {
-  cardStyle,
-  sectionStyle,
-  pickerRowStyle,
-  inputLabelStyle,
-  smallPickerLabelStyle,
-  largePickerLabelStyle,
-  selectStyle,
-  actionRowStyle,
-  tabButtonStyle,
-  tabButtonActiveStyle,
-  transcriptSectionStyle,
-  summarySectionStyle,
-  summaryTextStyle,
-  transcriptListStyle,
-  transcriptItemStyle,
-  transcriptTimestampStyle,
-  transcriptTimestampHoverStyle,
-  transcriptMessageStyle,
-  transcriptErrorStyle,
-  primaryButtonStyle,
-  secondaryButtonStyle,
-  onboardingTitleStyle,
-  onboardingDescriptionStyle,
-  apiKeyInputStyle,
-  gateActionsStyle,
-  linkButtonStyle,
-  helperTextStyle,
-  chatSectionStyle,
-  chatMessagesStyle,
-  chatMessageUserStyle,
-  chatMessageAssistantStyle,
-  chatInputContainerStyle,
-  chatInputStyle,
-  chatSendButtonStyle,
-  customSelectContainerStyle,
-  customSelectButtonStyle,
-  customSelectDropdownStyle,
-  customSelectOptionStyle,
-  customSelectOptionLabelStyle,
-  customSelectOptionDescriptionStyle,
-  floatingLauncherStyle,
-  headerContainerStyle,
-  headerIconButtonStyle,
-  headerIconButtonGhostStyle,
-} from "./styles";
+import { styles } from "./styles";
 import {
   formatTimestamp,
   extractCurrentVideoId,
@@ -84,10 +39,10 @@ const renderSelect = (
   onChange: (next: string) => void,
   options: { label: string; value: string }[]
 ) => (
-  <label style={smallPickerLabelStyle}>
+  <label style={styles.picker.label.small}>
     {label}
     <select
-      style={selectStyle}
+      style={styles.picker.select}
       value={value}
       onChange={(event) => onChange(event.target.value)}
     >
@@ -150,12 +105,12 @@ const CustomModelSelect = ({
   };
 
   return (
-    <div style={largePickerLabelStyle}>
+    <div style={styles.picker.label.large}>
       <span>{label}</span>
-      <div style={customSelectContainerStyle} ref={containerRef}>
+      <div style={styles.customSelect.container} ref={containerRef}>
         <button
           type="button"
-          style={customSelectButtonStyle}
+          style={styles.customSelect.button}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -165,7 +120,7 @@ const CustomModelSelect = ({
           {selectedOption?.label || "Select model"}
         </button>
         {isOpen && (
-          <div style={customSelectDropdownStyle}>
+          <div style={styles.customSelect.dropdown}>
             {options.map((option) => {
               const isSelected = option.value === value;
               const isHovered = hoveredOption === option.value;
@@ -173,7 +128,7 @@ const CustomModelSelect = ({
                 <div
                   key={option.value}
                   style={{
-                    ...customSelectOptionStyle,
+                    ...styles.customSelect.option.base,
                     background:
                       isSelected || isHovered
                         ? "rgba(255,255,255,0.08)"
@@ -189,9 +144,11 @@ const CustomModelSelect = ({
                   role="option"
                   aria-selected={isSelected}
                 >
-                  <div style={customSelectOptionLabelStyle}>{option.label}</div>
+                  <div style={styles.customSelect.option.label}>
+                    {option.label}
+                  </div>
                   {option.description && (
-                    <div style={customSelectOptionDescriptionStyle}>
+                    <div style={styles.customSelect.option.description}>
                       {option.description}
                     </div>
                   )}
@@ -526,8 +483,8 @@ export default function Widget() {
           key={`timestamp-${lineIndex}-${tsIndex}`}
           style={
             hoveredTimestamp === timestampOffset
-              ? transcriptTimestampHoverStyle
-              : transcriptTimestampStyle
+              ? styles.transcript.timestamp.hover
+              : styles.transcript.timestamp.base
           }
           onClick={(e) => {
             e.preventDefault();
@@ -591,15 +548,15 @@ export default function Widget() {
     };
 
     return (
-      <div style={summarySectionStyle}>
+      <div style={styles.summary.section}>
         {isSummaryLoading && (
-          <div style={transcriptMessageStyle}>Generating summary…</div>
+          <div style={styles.common.message}>Generating summary…</div>
         )}
         {!isSummaryLoading && summaryError && (
-          <div style={transcriptErrorStyle}>{summaryError}</div>
+          <div style={styles.common.error}>{summaryError}</div>
         )}
         {!isSummaryLoading && !summaryError && summary && (
-          <div style={summaryTextStyle}>
+          <div style={styles.summary.text}>
             <ReactMarkdown
               components={{
                 p: ({ children }) => (
@@ -648,12 +605,12 @@ export default function Widget() {
   };
 
   const renderTranscriptPanel = () => (
-    <div style={transcriptSectionStyle}>
+    <div style={styles.transcript.section}>
       {isTranscriptLoading && (
-        <div style={transcriptMessageStyle}>Fetching transcript…</div>
+        <div style={styles.common.message}>Fetching transcript…</div>
       )}
       {!isTranscriptLoading && transcriptError && (
-        <div style={transcriptErrorStyle}>{transcriptError}</div>
+        <div style={styles.common.error}>{transcriptError}</div>
       )}
       {!isTranscriptLoading &&
         !transcriptError &&
@@ -669,7 +626,7 @@ export default function Widget() {
               type="button"
               onClick={handleCopyTranscript}
               style={{
-                ...secondaryButtonStyle,
+                ...styles.button.secondary,
                 padding: "6px 12px",
                 fontSize: "10px",
                 flex: "none",
@@ -682,14 +639,17 @@ export default function Widget() {
           </div>
         )}
       {!isTranscriptLoading && !transcriptError && (
-        <div style={transcriptListStyle}>
+        <div style={styles.transcript.list}>
           {transcriptSegments.map((segment, index) => (
-            <div key={`${segment.offset}-${index}`} style={transcriptItemStyle}>
+            <div
+              key={`${segment.offset}-${index}`}
+              style={styles.transcript.item}
+            >
               <span
                 style={
                   hoveredTimestamp === segment.offset
-                    ? transcriptTimestampHoverStyle
-                    : transcriptTimestampStyle
+                    ? styles.transcript.timestamp.hover
+                    : styles.transcript.timestamp.base
                 }
                 onClick={(e) => {
                   e.preventDefault();
@@ -730,10 +690,10 @@ export default function Widget() {
   const renderPlaceholderPanel = () => null;
 
   const renderChatPanel = () => (
-    <div style={chatSectionStyle}>
+    <div style={styles.chat.section}>
       <div
         ref={chatMessagesContainerRef}
-        style={chatMessagesStyle}
+        style={styles.chat.messages}
         onScroll={() => {
           if (chatMessagesContainerRef.current) {
             const { scrollTop, scrollHeight, clientHeight } =
@@ -749,8 +709,8 @@ export default function Widget() {
             key={index}
             style={
               message.role === "user"
-                ? chatMessageUserStyle
-                : chatMessageAssistantStyle
+                ? styles.chat.message.user
+                : styles.chat.message.assistant
             }
           >
             {message.role === "assistant" ? (
@@ -768,13 +728,13 @@ export default function Widget() {
             )}
           </div>
         ))}
-        {isChatLoading && <div style={transcriptMessageStyle}>Thinking…</div>}
-        {chatError && <div style={transcriptErrorStyle}>{chatError}</div>}
+        {isChatLoading && <div style={styles.common.message}>Thinking…</div>}
+        {chatError && <div style={styles.common.error}>{chatError}</div>}
         <div ref={chatMessagesEndRef} />
       </div>
-      <div style={chatInputContainerStyle}>
+      <div style={styles.chat.input.container}>
         <input
-          style={chatInputStyle}
+          style={styles.chat.input.field}
           type="text"
           placeholder="Ask a question..."
           value={chatInput}
@@ -789,7 +749,7 @@ export default function Widget() {
         />
         <button
           style={{
-            ...chatSendButtonStyle,
+            ...styles.chat.sendButton,
             opacity: isChatLoading || !chatInput.trim() ? 0.5 : 1,
           }}
           onClick={handleSendMessage}
@@ -812,8 +772,8 @@ export default function Widget() {
     const isEditButtonDisabled = !apiKey && !isEditingApiKey;
     const editButtonBaseStyle =
       isEditingApiKey || showApiKeyGate
-        ? headerIconButtonStyle
-        : headerIconButtonGhostStyle;
+        ? styles.header.iconButton
+        : styles.header.iconButtonGhost;
     const editIcon = isEditingApiKey ? "✕" : "🔑";
     const isEditHovered = hoveredHeaderButton === "edit";
     const editButtonStyle = {
@@ -823,13 +783,13 @@ export default function Widget() {
     };
     const isMinimizeHovered = hoveredHeaderButton === "minimize";
     const minimizeButtonStyle = {
-      ...headerIconButtonStyle,
+      ...styles.header.iconButton,
       opacity: isMinimizeHovered ? 1 : 0.7,
       transform: isMinimizeHovered ? "scale(1.05)" : "scale(1)",
     };
 
     return (
-      <div style={headerContainerStyle}>
+      <div style={styles.header.container}>
         <button
           type="button"
           style={editButtonStyle}
@@ -859,14 +819,14 @@ export default function Widget() {
   };
 
   const renderApiKeyGate = () => (
-    <div style={sectionStyle}>
-      <div style={onboardingTitleStyle}>Connect Google AI Studio</div>
-      <div style={onboardingDescriptionStyle}>
+    <div style={styles.layout.section}>
+      <div style={styles.onboarding.title}>Connect Google AI Studio</div>
+      <div style={styles.onboarding.description}>
         You need a Google AI Studio API key to generate summaries. Getting one
         is free and only takes a minute.
       </div>
       <input
-        style={apiKeyInputStyle}
+        style={styles.onboarding.input}
         placeholder="Paste your API key"
         type="password"
         value={apiKeyInput}
@@ -875,9 +835,9 @@ export default function Widget() {
         }}
         disabled={isValidatingApiKey}
       />
-      <div style={gateActionsStyle}>
+      <div style={styles.onboarding.actions}>
         <button
-          style={primaryButtonStyle}
+          style={styles.button.primary}
           onClick={handleSaveApiKey}
           disabled={isValidatingApiKey}
         >
@@ -885,7 +845,7 @@ export default function Widget() {
         </button>
         <a
           href={GOOGLE_API_KEY_URL}
-          style={linkButtonStyle}
+          style={styles.button.link}
           target="_blank"
           rel="noreferrer"
         >
@@ -896,23 +856,23 @@ export default function Widget() {
         <div
           style={
             apiKeyNotice.includes("Please")
-              ? transcriptErrorStyle
-              : transcriptMessageStyle
+              ? styles.common.error
+              : styles.common.message
           }
         >
           {apiKeyNotice}
         </div>
       )}
       {apiKeyValidationError && (
-        <div style={transcriptErrorStyle}>{apiKeyValidationError}</div>
+        <div style={styles.common.error}>{apiKeyValidationError}</div>
       )}
-      <div style={helperTextStyle}>
+      <div style={styles.onboarding.helperText}>
         Stored securely in this browser only (localStorage).
       </div>
       {apiKey && (
         <button
           type="button"
-          style={{ ...linkButtonStyle, background: "transparent" }}
+          style={{ ...styles.button.link, background: "transparent" }}
           onClick={handleResetApiKey}
         >
           Remove saved key
@@ -925,7 +885,7 @@ export default function Widget() {
     return (
       <button
         type="button"
-        style={floatingLauncherStyle}
+        style={styles.floating.launcher}
         onClick={handleRestore}
         aria-label="Open YouTube Summary widget"
       >
@@ -935,24 +895,24 @@ export default function Widget() {
   }
 
   return (
-    <div style={cardStyle}>
+    <div style={styles.layout.card}>
       {renderHeader()}
       {showApiKeyGate ? (
         renderApiKeyGate()
       ) : (
         <>
-          <div style={sectionStyle}>
-            <div style={pickerRowStyle}>
+          <div style={styles.layout.section}>
+            <div style={styles.picker.row}>
               {renderSelect("Language", language, setLanguage, languages)}
               {renderModelSelect("Model", model, setModel, models)}
               {renderSelect("Length", length, setLength, lengths)}
             </div>
-            <div style={actionRowStyle}>
+            <div style={styles.tabs.row}>
               <button
                 style={{
                   ...((activeView === "summary" || isSummaryLoading
-                    ? tabButtonActiveStyle
-                    : tabButtonStyle) as typeof tabButtonStyle),
+                    ? styles.tabs.buttonActive
+                    : styles.tabs.button) as typeof styles.tabs.button),
                   opacity:
                     hoveredAction === "summary" && !isSummaryLoading ? 1 : 0.85,
                   transform:
@@ -971,8 +931,8 @@ export default function Widget() {
               <button
                 style={{
                   ...((activeView === "transcript"
-                    ? tabButtonActiveStyle
-                    : tabButtonStyle) as typeof tabButtonStyle),
+                    ? styles.tabs.buttonActive
+                    : styles.tabs.button) as typeof styles.tabs.button),
                   opacity:
                     hoveredAction === "transcript" && !isTranscriptLoading
                       ? 1
@@ -993,8 +953,8 @@ export default function Widget() {
               <button
                 style={{
                   ...((activeView === "chat"
-                    ? tabButtonActiveStyle
-                    : tabButtonStyle) as typeof tabButtonStyle),
+                    ? styles.tabs.buttonActive
+                    : styles.tabs.button) as typeof styles.tabs.button),
                   opacity:
                     hoveredAction === "chat" &&
                     !(isChatLoading && activeView !== "chat")

@@ -1,14 +1,6 @@
 import { useState } from "react";
 import type { TranscriptSegment } from "../types";
-import {
-  transcriptErrorStyle,
-  transcriptItemStyle,
-  transcriptListStyle,
-  transcriptMessageStyle,
-  transcriptSectionStyle,
-  transcriptTimestampHoverStyle,
-  transcriptTimestampStyle,
-} from "../styles";
+import { styles } from "../styles";
 import { formatTimestamp, seekToTimestamp } from "../utils";
 
 type TranscriptPanelProps = {
@@ -25,20 +17,20 @@ export function TranscriptPanel({
   const [hoveredTimestamp, setHoveredTimestamp] = useState<number | null>(null);
 
   return (
-    <div style={transcriptSectionStyle}>
+    <div style={styles.transcript.section}>
       {isLoading && (
-        <div style={transcriptMessageStyle}>Fetching transcript…</div>
+        <div style={styles.common.message}>Fetching transcript…</div>
       )}
-      {!isLoading && error && <div style={transcriptErrorStyle}>{error}</div>}
+      {!isLoading && error && <div style={styles.common.error}>{error}</div>}
       {!isLoading && !error && (
-        <div style={transcriptListStyle}>
+        <div style={styles.transcript.list}>
           {segments.map((segment, index) => (
-            <div key={`${segment.offset}-${index}`} style={transcriptItemStyle}>
+            <div key={`${segment.offset}-${index}`} style={styles.transcript.item}>
               <span
                 style={
                   hoveredTimestamp === segment.offset
-                    ? transcriptTimestampHoverStyle
-                    : transcriptTimestampStyle
+                    ? styles.transcript.timestamp.hover
+                    : styles.transcript.timestamp.base
                 }
                 onClick={(event) => {
                   event.preventDefault();

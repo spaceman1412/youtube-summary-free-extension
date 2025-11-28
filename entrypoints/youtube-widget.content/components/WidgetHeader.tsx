@@ -1,9 +1,5 @@
 import { useState } from "react";
-import {
-  headerContainerStyle,
-  headerIconButtonGhostStyle,
-  headerIconButtonStyle,
-} from "../styles";
+import { styles } from "../styles";
 
 type WidgetHeaderProps = {
   isEditingApiKey: boolean;
@@ -25,13 +21,13 @@ export function WidgetHeader({
   const isEditButtonDisabled = !showApiKeyGate && !isEditingApiKey;
   const editButtonBaseStyle =
     isEditingApiKey || showApiKeyGate
-      ? headerIconButtonStyle
-      : headerIconButtonGhostStyle;
+      ? styles.header.iconButton
+      : styles.header.iconButtonGhost;
   const editIcon = isEditingApiKey ? "✕" : "🔑";
 
   const getButtonStyle = (type: "edit" | "minimize") => {
     const style =
-      type === "edit" ? editButtonBaseStyle : headerIconButtonStyle;
+      type === "edit" ? editButtonBaseStyle : styles.header.iconButton;
     const isHovered = hoveredButton === type;
     return {
       ...style,
@@ -41,7 +37,7 @@ export function WidgetHeader({
   };
 
   return (
-    <div style={headerContainerStyle}>
+    <div style={styles.header.container}>
       <button
         type="button"
         style={getButtonStyle("edit")}

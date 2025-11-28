@@ -1,14 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { ModelOption } from "../types";
-import {
-  customSelectButtonStyle,
-  customSelectContainerStyle,
-  customSelectDropdownStyle,
-  customSelectOptionDescriptionStyle,
-  customSelectOptionLabelStyle,
-  customSelectOptionStyle,
-  largePickerLabelStyle,
-} from "../styles";
+import { styles } from "../styles";
 
 type CustomModelSelectProps = {
   label: string;
@@ -56,12 +48,12 @@ export function CustomModelSelect({
   };
 
   return (
-    <div style={largePickerLabelStyle}>
+    <div style={styles.picker.label.large}>
       <span>{label}</span>
-      <div style={customSelectContainerStyle} ref={containerRef}>
+      <div style={styles.customSelect.container} ref={containerRef}>
         <button
           type="button"
-          style={customSelectButtonStyle}
+          style={styles.customSelect.button}
           onClick={(event) => {
             event.preventDefault();
             event.stopPropagation();
@@ -71,7 +63,7 @@ export function CustomModelSelect({
           {selectedOption?.label ?? "Select model"}
         </button>
         {isOpen && (
-          <div style={customSelectDropdownStyle}>
+          <div style={styles.customSelect.dropdown}>
             {options.map((option) => {
               const isSelected = option.value === value;
               const isHovered = hoveredOption === option.value;
@@ -79,7 +71,7 @@ export function CustomModelSelect({
                 <div
                   key={option.value}
                   style={{
-                    ...customSelectOptionStyle,
+                    ...styles.customSelect.option.base,
                     background:
                       isSelected || isHovered
                         ? "rgba(255,255,255,0.08)"
@@ -95,9 +87,11 @@ export function CustomModelSelect({
                   role="option"
                   aria-selected={isSelected}
                 >
-                  <div style={customSelectOptionLabelStyle}>{option.label}</div>
+                  <div style={styles.customSelect.option.label}>
+                    {option.label}
+                  </div>
                   {option.description && (
-                    <div style={customSelectOptionDescriptionStyle}>
+                    <div style={styles.customSelect.option.description}>
                       {option.description}
                     </div>
                   )}

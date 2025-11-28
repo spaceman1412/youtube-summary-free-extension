@@ -1,5 +1,5 @@
 import type { ActiveView } from "../types";
-import { tabButtonActiveStyle, tabButtonStyle, actionRowStyle } from "../styles";
+import { styles } from "../styles";
 
 type ActionButtonsProps = {
   activeView: ActiveView;
@@ -21,12 +21,12 @@ export function ActionButtons({
   onChatClick,
 }: ActionButtonsProps) {
   const getTabStyle = (view: ActiveView, isDisabled: boolean) => ({
-    ...((activeView === view ? tabButtonActiveStyle : tabButtonStyle) as typeof tabButtonStyle),
+    ...((activeView === view ? styles.tabs.buttonActive : styles.tabs.button) as typeof styles.tabs.button),
     opacity: isDisabled ? 0.5 : 0.85,
   });
 
   return (
-    <div style={actionRowStyle}>
+    <div style={styles.tabs.row}>
       <button
         style={getTabStyle("summary", isSummaryLoading)}
         onClick={onSummaryClick}

@@ -1,10 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 import { languages, models, lengths } from "../constants";
-import {
-  pickerRowStyle,
-  selectStyle,
-  smallPickerLabelStyle,
-} from "../styles";
+import { styles } from "../styles";
 import { CustomModelSelect } from "./CustomModelSelect";
 
 type PickerControlsProps = {
@@ -22,10 +18,10 @@ const renderSelect = (
   onChange: (next: string) => void,
   options: { label: string; value: string }[]
 ) => (
-  <label style={smallPickerLabelStyle}>
+  <label style={styles.picker.label.small}>
     {label}
     <select
-      style={selectStyle}
+      style={styles.picker.select}
       value={value}
       onChange={(event) => onChange(event.target.value)}
     >
@@ -47,7 +43,7 @@ export function PickerControls({
   setLength,
 }: PickerControlsProps) {
   return (
-    <div style={pickerRowStyle}>
+    <div style={styles.picker.row}>
       {renderSelect("Language", language, setLanguage, languages)}
       <CustomModelSelect
         label="Model"
