@@ -671,15 +671,9 @@ export default function Widget() {
               >
                 {formatTimestamp(segment.offset)}
               </span>
-              <ReactMarkdown
-                components={{
-                  p: ({ children }) => (
-                    <span style={{ whiteSpace: "pre-wrap" }}>{children}</span>
-                  ),
-                }}
-              >
+              <span style={{ whiteSpace: "pre-wrap" }}>
                 {segment.text || "…"}
-              </ReactMarkdown>
+              </span>
             </div>
           ))}
         </div>

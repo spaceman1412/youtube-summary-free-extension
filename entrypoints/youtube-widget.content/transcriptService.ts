@@ -5,6 +5,7 @@
 import { fetchTranscript } from "youtube-transcript-plus";
 import type { TranscriptSegment } from "./types";
 import { extractCurrentVideoId } from "./utils";
+import { decode } from "html-entities";
 
 /**
  * Fetches transcript for the current video
@@ -24,7 +25,13 @@ export async function fetchTranscriptForVideo(
 
     // If we got a non-empty transcript, return it
     if (transcript && transcript.length > 0) {
-      return transcript;
+      // Youtube transcript have changed to encoded with HTML entities, so we need to decode it
+      const decodedTranscript = transcript.map((segment) => ({
+        ...segment,
+        text: decode(decode(segment.text.trim())).trim(),
+      }));
+
+      return decodedTranscript;
     }
   } catch (error) {
     // If language-specific transcript fails, we'll try the default below
