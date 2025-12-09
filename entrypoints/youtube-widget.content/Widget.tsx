@@ -870,92 +870,93 @@ export default function Widget() {
       </button>
     );
   }
+  const renderContent = () => {
+    return (
+      <>
+        <div style={styles.layout.section}>
+          <div style={styles.picker.row}>
+            {renderSelect("Language", language, setLanguage, languages)}
+            {renderModelSelect("Model", model, setModel, models)}
+            {renderSelect("Length", length, setLength, lengths)}
+          </div>
+          <div style={styles.tabs.row}>
+            <button
+              style={{
+                ...((activeView === "summary" || isSummaryLoading
+                  ? styles.tabs.buttonActive
+                  : styles.tabs.button) as typeof styles.tabs.button),
+                opacity:
+                  hoveredAction === "summary" && !isSummaryLoading ? 1 : 0.85,
+                transform:
+                  hoveredAction === "summary" && !isSummaryLoading
+                    ? "translateY(-1px)"
+                    : "translateY(0)",
+              }}
+              onClick={handleSummaryClick}
+              disabled={isSummaryLoading}
+              onMouseEnter={() => setHoveredAction("summary")}
+              onMouseLeave={() => setHoveredAction(null)}
+            >
+              <span>✨</span>
+              <span>{isSummaryLoading ? "…" : "Summary"}</span>
+            </button>
+            <button
+              style={{
+                ...((activeView === "transcript"
+                  ? styles.tabs.buttonActive
+                  : styles.tabs.button) as typeof styles.tabs.button),
+                opacity:
+                  hoveredAction === "transcript" && !isTranscriptLoading
+                    ? 1
+                    : 0.85,
+                transform:
+                  hoveredAction === "transcript" && !isTranscriptLoading
+                    ? "translateY(-1px)"
+                    : "translateY(0)",
+              }}
+              onClick={handleTranscriptClick}
+              disabled={isTranscriptLoading}
+              onMouseEnter={() => setHoveredAction("transcript")}
+              onMouseLeave={() => setHoveredAction(null)}
+            >
+              <span>📄</span>
+              <span>{isTranscriptLoading ? "…" : "Transcript"}</span>
+            </button>
+            <button
+              style={{
+                ...((activeView === "chat"
+                  ? styles.tabs.buttonActive
+                  : styles.tabs.button) as typeof styles.tabs.button),
+                opacity:
+                  hoveredAction === "chat" &&
+                  !(isChatLoading && activeView !== "chat")
+                    ? 1
+                    : 0.85,
+                transform:
+                  hoveredAction === "chat" &&
+                  !(isChatLoading && activeView !== "chat")
+                    ? "translateY(-1px)"
+                    : "translateY(0)",
+              }}
+              onClick={handleChatClick}
+              disabled={isChatLoading && activeView !== "chat"}
+              onMouseEnter={() => setHoveredAction("chat")}
+              onMouseLeave={() => setHoveredAction(null)}
+            >
+              <span>💬</span>
+              <span>Chat</span>
+            </button>
+          </div>
+        </div>
+        {renderContentPanel()}
+      </>
+    );
+  };
 
   return (
     <div style={styles.layout.card}>
       {renderHeader()}
-      {showApiKeyGate ? (
-        renderApiKeyGate()
-      ) : (
-        <>
-          <div style={styles.layout.section}>
-            <div style={styles.picker.row}>
-              {renderSelect("Language", language, setLanguage, languages)}
-              {renderModelSelect("Model", model, setModel, models)}
-              {renderSelect("Length", length, setLength, lengths)}
-            </div>
-            <div style={styles.tabs.row}>
-              <button
-                style={{
-                  ...((activeView === "summary" || isSummaryLoading
-                    ? styles.tabs.buttonActive
-                    : styles.tabs.button) as typeof styles.tabs.button),
-                  opacity:
-                    hoveredAction === "summary" && !isSummaryLoading ? 1 : 0.85,
-                  transform:
-                    hoveredAction === "summary" && !isSummaryLoading
-                      ? "translateY(-1px)"
-                      : "translateY(0)",
-                }}
-                onClick={handleSummaryClick}
-                disabled={isSummaryLoading}
-                onMouseEnter={() => setHoveredAction("summary")}
-                onMouseLeave={() => setHoveredAction(null)}
-              >
-                <span>✨</span>
-                <span>{isSummaryLoading ? "…" : "Summary"}</span>
-              </button>
-              <button
-                style={{
-                  ...((activeView === "transcript"
-                    ? styles.tabs.buttonActive
-                    : styles.tabs.button) as typeof styles.tabs.button),
-                  opacity:
-                    hoveredAction === "transcript" && !isTranscriptLoading
-                      ? 1
-                      : 0.85,
-                  transform:
-                    hoveredAction === "transcript" && !isTranscriptLoading
-                      ? "translateY(-1px)"
-                      : "translateY(0)",
-                }}
-                onClick={handleTranscriptClick}
-                disabled={isTranscriptLoading}
-                onMouseEnter={() => setHoveredAction("transcript")}
-                onMouseLeave={() => setHoveredAction(null)}
-              >
-                <span>📄</span>
-                <span>{isTranscriptLoading ? "…" : "Transcript"}</span>
-              </button>
-              <button
-                style={{
-                  ...((activeView === "chat"
-                    ? styles.tabs.buttonActive
-                    : styles.tabs.button) as typeof styles.tabs.button),
-                  opacity:
-                    hoveredAction === "chat" &&
-                    !(isChatLoading && activeView !== "chat")
-                      ? 1
-                      : 0.85,
-                  transform:
-                    hoveredAction === "chat" &&
-                    !(isChatLoading && activeView !== "chat")
-                      ? "translateY(-1px)"
-                      : "translateY(0)",
-                }}
-                onClick={handleChatClick}
-                disabled={isChatLoading && activeView !== "chat"}
-                onMouseEnter={() => setHoveredAction("chat")}
-                onMouseLeave={() => setHoveredAction(null)}
-              >
-                <span>💬</span>
-                <span>Chat</span>
-              </button>
-            </div>
-          </div>
-          {renderContentPanel()}
-        </>
-      )}
+      {showApiKeyGate ? renderApiKeyGate() : renderContent()}
     </div>
   );
 }
