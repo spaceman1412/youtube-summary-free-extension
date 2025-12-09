@@ -557,9 +557,17 @@ export default function Widget() {
         )}
         {!isSummaryLoading && !summaryError && summary && (
           <div style={styles.summary.text}>
-            <span style={{ whiteSpace: "pre-wrap" }}>
-              {renderContentWithTimestamps(summary)}
-            </span>
+            <ReactMarkdown
+              components={{
+                p: ({ children }) => (
+                  <p style={{ margin: 0, whiteSpace: "pre-wrap" }}>
+                    {renderContentWithTimestamps(children)}
+                  </p>
+                ),
+              }}
+            >
+              {summary}
+            </ReactMarkdown>
           </div>
         )}
       </div>
@@ -956,7 +964,7 @@ export default function Widget() {
   return (
     <div style={styles.layout.card}>
       {renderHeader()}
-      {showApiKeyGate ? renderApiKeyGate() : renderContent()}
+      {!showApiKeyGate ? renderContent() : renderApiKeyGate()}
     </div>
   );
 }

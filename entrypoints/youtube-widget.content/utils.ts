@@ -23,14 +23,32 @@ export const extractCurrentVideoId = (): string | undefined => {
 };
 
 /**
- * Formats transcript timestamps into mm:ss for readability.
+ * Formats transcript timestamps into mm:ss, or hh:mm:ss when 1 hour or longer.
  */
 export const formatTimestamp = (offset: number): string => {
   const totalSeconds = Math.floor(offset);
-  const minutes = Math.floor(totalSeconds / 60)
+  const secondsPerMinute = 60;
+  const secondsPerHour = 3600;
+
+  if (totalSeconds >= secondsPerHour) {
+    const hours = Math.floor(totalSeconds / secondsPerHour)
+      .toString()
+      .padStart(2, "0");
+    const minutes = Math.floor(
+      (totalSeconds % secondsPerHour) / secondsPerMinute
+    )
+      .toString()
+      .padStart(2, "0");
+    const seconds = (totalSeconds % secondsPerMinute)
+      .toString()
+      .padStart(2, "0");
+    return `${hours}:${minutes}:${seconds}`;
+  }
+
+  const minutes = Math.floor(totalSeconds / secondsPerMinute)
     .toString()
     .padStart(2, "0");
-  const seconds = (totalSeconds % 60).toString().padStart(2, "0");
+  const seconds = (totalSeconds % secondsPerMinute).toString().padStart(2, "0");
   return `${minutes}:${seconds}`;
 };
 
