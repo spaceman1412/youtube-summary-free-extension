@@ -557,26 +557,9 @@ export default function Widget() {
         )}
         {!isSummaryLoading && !summaryError && summary && (
           <div style={styles.summary.text}>
-            <ReactMarkdown
-              components={{
-                p: ({ children }) => (
-                  <p
-                    style={{
-                      margin: 0,
-                      marginBottom: "8px",
-                      whiteSpace: "pre-wrap",
-                    }}
-                  >
-                    {renderContentWithTimestamps(children)}
-                  </p>
-                ),
-                li: ({ children }) => (
-                  <li>{renderContentWithTimestamps(children)}</li>
-                ),
-              }}
-            >
-              {summary}
-            </ReactMarkdown>
+            <span style={{ whiteSpace: "pre-wrap" }}>
+              {renderContentWithTimestamps(summary)}
+            </span>
           </div>
         )}
       </div>

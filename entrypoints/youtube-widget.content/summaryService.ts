@@ -65,12 +65,10 @@ export async function generateSummary(
     language,
     length
   );
-
   const response = await ai.models.generateContent({
     model: getModelId(model),
     contents: prompt,
     config: {
-      maxOutputTokens: length === "long" ? 1024 : 512,
       temperature: 0.7,
     },
   });

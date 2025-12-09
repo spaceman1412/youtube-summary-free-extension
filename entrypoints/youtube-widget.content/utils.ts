@@ -3,7 +3,6 @@
  */
 
 import type { TranscriptSegment } from "./types";
-import { MAX_TRANSCRIPT_CHARACTERS } from "./constants";
 
 /**
  * Extracts a video ID from the current URL.
@@ -39,9 +38,14 @@ export const formatTimestamp = (offset: number): string => {
  * Reduces transcript segments to fit within character limit
  */
 export const reduceTranscript = (segments: TranscriptSegment[]): string => {
-  const combined = segments.map((segment) => segment.text ?? "").join(" ");
-  if (combined.length <= MAX_TRANSCRIPT_CHARACTERS) return combined;
-  return combined.slice(-MAX_TRANSCRIPT_CHARACTERS);
+  const combined = segments
+    .map((segment) => {
+      const text = segment.text ?? "";
+      const timestamp = formatTimestamp(segment.offset);
+      return `[${timestamp}] ${text}`;
+    })
+    .join(" ");
+  return combined;
 };
 
 /**
@@ -109,42 +113,27 @@ export const parseTimestampToSeconds = (timestamp: string): number | null => {
   const trimmed = timestamp.trim();
   if (!trimmed) return null;
 
-  // Match patterns: h:mm:ss, mm:ss, m:ss
-  // Pattern breakdown:
-  // - Optional hours: (\d{1,2}):?
-  // - Minutes: (\d{1,2})
-  // - Seconds: (\d{2})
-  const patterns = [
-    /^(\d{1,2}):(\d{1,2}):(\d{2})$/, // h:mm:ss or hh:mm:ss
-    /^(\d{1,2}):(\d{2})$/, // m:ss or mm:ss
-  ];
+  const parts = trimmed.split(":").map((part) => Number(part));
+  if (parts.some((value) => Number.isNaN(value))) return null;
 
-  for (const pattern of patterns) {
-    const match = trimmed.match(pattern);
-    if (match) {
-      if (match.length === 4) {
-        // h:mm:ss format
-        const hours = parseInt(match[1], 10);
-        const minutes = parseInt(match[2], 10);
-        const seconds = parseInt(match[3], 10);
-        if (
-          hours >= 0 &&
-          minutes >= 0 &&
-          minutes < 60 &&
-          seconds >= 0 &&
-          seconds < 60
-        ) {
-          return hours * 3600 + minutes * 60 + seconds;
-        }
-      } else if (match.length === 3) {
-        // m:ss or mm:ss format
-        const minutes = parseInt(match[1], 10);
-        const seconds = parseInt(match[2], 10);
-        if (minutes >= 0 && seconds >= 0 && seconds < 60) {
-          return minutes * 60 + seconds;
-        }
-      }
+  if (parts.length === 2) {
+    const [minutes, seconds] = parts;
+    if (minutes < 0 || seconds < 0 || seconds >= 60) return null;
+    return minutes * 60 + seconds;
+  }
+
+  if (parts.length === 3) {
+    const [hours, minutes, seconds] = parts;
+    if (
+      hours < 0 ||
+      minutes < 0 ||
+      minutes >= 60 ||
+      seconds < 0 ||
+      seconds >= 60
+    ) {
+      return null;
     }
+    return hours * 3600 + minutes * 60 + seconds;
   }
 
   return null;
@@ -161,10 +150,9 @@ export const parseTimestampsFromText = (
     [];
 
   // Regex to match timestamps in various formats
-  // Matches: h:mm:ss, hh:mm:ss, m:ss, mm:ss
+  // Matches: h:mm:ss, hh:mm:ss, m:ss, mm:ss with 1–2 digit seconds
   // Lookbehind and lookahead to ensure we're not matching part of a larger number
-  const timestampRegex =
-    /\b(\d{1,2}:\d{1,2}(?::\d{2})?)\b/g;
+  const timestampRegex = /(?<!\d)(\d{1,2}:\d{1,2}(?::\d{1,2})?)(?!\d)/g;
 
   let match;
   while ((match = timestampRegex.exec(text)) !== null) {
