@@ -564,6 +564,33 @@ export default function Widget() {
                     {renderContentWithTimestamps(children)}
                   </p>
                 ),
+                li: ({ children }) => (
+                  <li style={{ marginBottom: "4px" }}>
+                    {renderContentWithTimestamps(children)}
+                  </li>
+                ),
+                ul: ({ children }) => (
+                  <ul
+                    style={{
+                      paddingLeft: "20px",
+                      marginTop: 0,
+                      marginBottom: "8px",
+                    }}
+                  >
+                    {children}
+                  </ul>
+                ),
+                ol: ({ children }) => (
+                  <ol
+                    style={{
+                      paddingLeft: "20px",
+                      marginTop: 0,
+                      marginBottom: "8px",
+                    }}
+                  >
+                    {children}
+                  </ol>
+                ),
               }}
             >
               {summary}
