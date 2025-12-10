@@ -4,7 +4,9 @@ A completely free, open-source extension powered by Google Gemini (bring your ow
 
 ## Demo
 
-https://github.com/user-attachments/assets/a3f7da07-c7a7-4697-b423-27a065e639a1
+https://github.com/user-attachments/assets/e8bdf24d-ec27-46d7-8906-da2c8ad873cf
+
+
 
 ## Features
 
