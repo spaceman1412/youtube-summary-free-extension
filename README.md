@@ -2,11 +2,11 @@
 
 A completely free, open-source extension powered by Google Gemini (bring your own free AI Studio key) that pops into the YouTube sidebar and delivers instant summaries, transcripts, and chat answers for every video so you can learn faster without leaving the page.
 
+<p align="center"><a rel="noreferrer noopener" href="#installation"><img alt="Chrome Web Store" src="https://img.shields.io/badge/Chrome-141e24.svg?&style=for-the-badge&logo=google-chrome&logoColor=white"></a>  <a rel="noreferrer noopener" href="https://addons.mozilla.org/vi/firefox/addon/youtube-summary-free/"><img alt="Firefox Add-ons" src="https://img.shields.io/badge/Firefox-141e24.svg?&style=for-the-badge&logo=firefox-browser&logoColor=white"></a>
+
 ## Demo
 
 https://github.com/user-attachments/assets/e8bdf24d-ec27-46d7-8906-da2c8ad873cf
-
-
 
 ## Features
 
@@ -46,6 +46,31 @@ web-ext.config.ts              # WebExtension build config overrides
 
 - Node.js ≥ 18
 - [pnpm](https://pnpm.io/) 9.x (the repo is pinned to `pnpm@9.10.0`)
+
+## Installation
+
+### Install from Zip File
+
+You can download the latest packaged zip file from the [GitHub Releases page](https://github.com/spaceman1412/youtube-summary-extension/releases). Once you have the zip file, follow these steps:
+
+#### For Chrome/Chromium-based browsers (Chrome, Edge, Brave, etc.)
+
+1. Download and extract the zip file to a folder on your computer.
+2. Open Chrome and navigate to `chrome://extensions/` (or `edge://extensions/` for Edge).
+3. Enable **Developer mode** by toggling the switch in the top-right corner.
+4. Click **Load unpacked**.
+5. Select the extracted folder containing the extension files.
+6. The extension should now be installed and ready to use!
+
+#### For Firefox
+
+1. Download and extract the zip file to a folder on your computer.
+2. Open Firefox and navigate to `about:debugging#/runtime/this-firefox`.
+3. Click **Load Temporary Add-on...**.
+4. Navigate to the extracted folder and select the `manifest.json` file.
+5. The extension should now be installed and ready to use!
+
+> **Note:** For Firefox, the extension will be temporary and will need to be reloaded after each browser restart. For a permanent installation, use the [Firefox Add-ons store](https://addons.mozilla.org/vi/firefox/addon/youtube-summary-free/).
 
 ## Getting Started
 
