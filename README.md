@@ -6,9 +6,6 @@
 
 [![Chrome Web Store](https://img.shields.io/badge/Chrome-141e24.svg?&style=for-the-badge&logo=google-chrome&logoColor=white)](#-installation)
 [![Firefox Add-ons](https://img.shields.io/badge/Firefox-141e24.svg?&style=for-the-badge&logo=firefox-browser&logoColor=white)](https://addons.mozilla.org/vi/firefox/addon/youtube-summary-free/)
-
-[Features](#-features) • [Installation](#-installation) • [Getting Started](#-getting-started) • [Contributing](#-contributing)
-
 </div>
 
 ---
