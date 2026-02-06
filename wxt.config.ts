@@ -14,6 +14,7 @@ export default defineConfig({
     startUrls: ["https://www.youtube.com/watch?v=4bIDbKzMZHI"],
   },
   manifest: {
+    permissions: ["storage"],
     host_permissions: [
       "https://generativelanguage.googleapis.com/*",
       "https://www.youtube.com/*",

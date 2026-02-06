@@ -23,51 +23,49 @@ export function usePreferences() {
   const [length, setLength] = useState(() => getDefaultPreference("length"));
 
   useEffect(() => {
-    try {
-      const storedPrefs = localStorage.getItem(PREFERENCES_STORAGE_KEY);
-      if (!storedPrefs) {
-        return;
-      }
-      const parsed = JSON.parse(storedPrefs);
-      if (!parsed || typeof parsed !== "object") {
-        return;
-      }
-      const {
-        language: storedLanguage,
-        model: storedModel,
-        length: storedLength,
-      } = parsed as Partial<Record<PreferenceKey, string>>;
+    browser.storage.local.get(PREFERENCES_STORAGE_KEY).then((result) => {
+      try {
+        const stored = result[PREFERENCES_STORAGE_KEY];
+        if (!stored || typeof stored !== "object") {
+          return;
+        }
+        const {
+          language: storedLanguage,
+          model: storedModel,
+          length: storedLength,
+        } = stored as Partial<Record<PreferenceKey, string>>;
 
-      if (
-        typeof storedLanguage === "string" &&
-        languages.some((option) => option.value === storedLanguage)
-      ) {
-        setLanguage(storedLanguage);
+        if (
+          typeof storedLanguage === "string" &&
+          languages.some((option) => option.value === storedLanguage)
+        ) {
+          setLanguage(storedLanguage);
+        }
+        if (
+          typeof storedModel === "string" &&
+          models.some((option) => option.value === storedModel)
+        ) {
+          setModel(storedModel);
+        }
+        if (
+          typeof storedLength === "string" &&
+          lengths.some((option) => option.value === storedLength)
+        ) {
+          setLength(storedLength);
+        }
+      } catch (error) {
+        console.error("Failed to load picker preferences", error);
       }
-      if (
-        typeof storedModel === "string" &&
-        models.some((option) => option.value === storedModel)
-      ) {
-        setModel(storedModel);
-      }
-      if (
-        typeof storedLength === "string" &&
-        lengths.some((option) => option.value === storedLength)
-      ) {
-        setLength(storedLength);
-      }
-    } catch (error) {
-      console.error("Failed to load picker preferences", error);
-    }
+    });
   }, []);
 
   useEffect(() => {
-    try {
-      const payload = JSON.stringify({ language, model, length });
-      localStorage.setItem(PREFERENCES_STORAGE_KEY, payload);
-    } catch (error) {
-      console.error("Failed to save picker preferences", error);
-    }
+    const payload = { language, model, length };
+    browser.storage.local
+      .set({ [PREFERENCES_STORAGE_KEY]: payload })
+      .catch((error: unknown) => {
+        console.error("Failed to save picker preferences", error);
+      });
   }, [language, model, length]);
 
   return {
