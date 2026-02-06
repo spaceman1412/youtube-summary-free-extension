@@ -11,11 +11,12 @@ export function useApiKey() {
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
-    const storedKey = getStoredApiKey();
-    if (storedKey) {
-      setApiKey(storedKey);
-      setInputValue(storedKey);
-    }
+    getStoredApiKey().then((storedKey) => {
+      if (storedKey) {
+        setApiKey(storedKey);
+        setInputValue(storedKey);
+      }
+    });
   }, []);
 
   const handleInputChange = useCallback((value: string) => {
@@ -38,7 +39,7 @@ export function useApiKey() {
     setIsValidating(true);
     try {
       await validateApiKey(trimmed);
-      saveApiKey(trimmed);
+      await saveApiKey(trimmed);
       setApiKey(trimmed);
       setNotice("API key validated and saved. You can update it anytime.");
       setIsEditing(false);
@@ -54,8 +55,8 @@ export function useApiKey() {
     }
   }, [inputValue, isValidating]);
 
-  const reset = useCallback(() => {
-    removeApiKey();
+  const reset = useCallback(async () => {
+    await removeApiKey();
     setApiKey("");
     setInputValue("");
     setNotice(null);

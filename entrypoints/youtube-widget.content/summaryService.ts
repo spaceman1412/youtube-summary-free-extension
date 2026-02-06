@@ -88,7 +88,6 @@ export async function generateSummary(
       .trim() ?? "";
 
   const finalSummary = inlineText || fallbackText;
-  console.log("finalSummary", finalSummary);
   if (!finalSummary) {
     throw new Error("Gemini returned an empty response.");
   }
